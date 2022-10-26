@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>OAuth2.0</h1>
+
+    <a href="http://localhost:3000/auth/google"
+      ><button>sign in with google</button></a
+    >
+    <br />
+    <br />
+    <a href="http://localhost:3000/auth/facebook"
+      ><button>sign in with facebook</button></a
+    >
+
+    <form
+      action="http://localhost:3000/drivers"
+      method="post"
+      enctype="multipart/form-data"
+    >
+      <input type="text" name="name" /> <br />
+      <input type="text" name="registrationNo" /> <br />
+      <input type="number" name="make" /> <br />
+      <input type="number" name="model" /> <br />
+      <input type="number" name="year" /> <br />
+      <input type="number" name="licenseNumber" /> <br />
+      <input type="number" name="DrivingFor" /> <br />
+      <input type="file" name="frontImg" /> <br />
+
+      <button type="submit">ok</button>
+    </form>
+    <h3>Dropshpper payment</h3>
+    <form action="http://localhost:3000/customers/orders/payment" method="POST">
+      <script
+        src="//checkout.stripe.com/v2/checkout.js"
+        class="stripe-button"
+        data-label="Pay now"
+        data-key="pk_test_51LVaiXGVj1b6RabbrChlXCoZ0d56rGHk4ZQ447NdUaoBA5G172vWboPc83k33NrjkT88abQOjWSxkxOWLBn7aaBI000x2YZoz4"
+        data-amount="1000"
+        data-currency="usd"
+        data-name="User Name Here"
+        data-description="testing stripe"
+        data-locale="auto"
+      ></script>
+    </form>
+
+
+    <br>
+    <form action="/ac">
+      <input type="text" name="mj">
+      <button type="submit"></button>
+    </form>
+    <script src="./app.js"></script>
+  </body>
+</html>
+
+
+
+
+
