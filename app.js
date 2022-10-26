@@ -218,7 +218,8 @@ app.get(
 );
 
 app.get("/login", function (req, res) {
-  res.send("Login page");
+  // res.send("Login page");
+  res.send({ success: true, Message: "Login TO continue" });
 });
 
 app.get("/register", function (req, res) {
