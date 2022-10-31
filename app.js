@@ -267,7 +267,7 @@ app.post("/register", function (req, res) {
 
           // res.redirect("/catogeries");
           // res.json(user);
-
+          req.session.isAuth = true;
           res.send({ success: true, Token: req.session.id });
         });
       }
