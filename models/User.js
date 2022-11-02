@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
     city: { type: String, default: "" },
     streetAddress: { type: String, default: "" },
     userType: { type: String, default: "" },
-    userPicture: String,
+    userPicture: { type: String, default: "" },
     // pendingOrders: [
     //   { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
     // ],

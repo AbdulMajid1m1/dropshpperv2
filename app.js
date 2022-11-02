@@ -248,31 +248,72 @@ app.get("/logout", function (req, res, next) {
 });
 // Register Route
 app.post("/register", function (req, res) {
-  User.register(
-    {
-      username: req.body.username,
+  try {
+    const userPicture = req.files.userPicture;
+    cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
+      if (!err) {
+        User.register(
+          {
+            username: req.body.username,
+            fullName: req.body.fullName,
+            mobileNumber: req.body.mobileNumber,
+            userPicture: picture.url,
+          },
+          req.body.password,
+          function (err, user) {
+            if (err) {
+              res.status(400).json({ error: err });
+            } else {
+              passport.authenticate("local")(req, res, function () {
+                user.save();
+                console.log(user._id);
 
-      fullName: req.body.fullName,
-      mobileNumber: req.body.mobileNumber,
-    },
-    req.body.password,
-    function (err, user) {
-      if (err) {
-        console.log(err);
-        res.redirect("/register");
+                // res.redirect("/catogeries");
+                // res.json(user);
+                req.session.isAuth = true;
+                res.status(200).json({
+                  success: true,
+                  Token: req.session.id,
+                  uuid: req.user._id,
+                });
+              });
+            }
+          }
+        );
       } else {
-        passport.authenticate("local")(req, res, function () {
-          user.save();
-          console.log(user._id);
-
-          // res.redirect("/catogeries");
-          // res.json(user);
-          req.session.isAuth = true;
-          res.send({ success: true, Token: req.session.id });
-        });
+        res.status(400).json({ error: err });
       }
-    }
-  );
+    });
+  } catch (err) {
+    User.register(
+      {
+        username: req.body.username,
+
+        fullName: req.body.fullName,
+        mobileNumber: req.body.mobileNumber,
+      },
+      req.body.password,
+      function (err, user) {
+        if (err) {
+          res.status(400).json({ error: err });
+        } else {
+          passport.authenticate("local")(req, res, function () {
+            user.save();
+            console.log(user._id);
+
+            // res.redirect("/catogeries");
+            // res.json(user);
+            req.session.isAuth = true;
+            res.status(200).json({
+              success: true,
+              Token: req.session.id,
+              uuid: req.user._id,
+            });
+          });
+        }
+      }
+    );
+  }
 });
 //Login Route
 app.post("/login", function (req, res) {
@@ -302,7 +343,9 @@ app.post("/login", function (req, res) {
         req.session.isAuth = true;
         // res.send("<h1>You are LogedIn!</h1>");
         // res.redirect("/checkk");
-        res.send({ success: true, Token: req.session.id });
+        res
+          .status(200)
+          .json({ success: true, Token: req.session.id, uuid: req.user._id });
       });
     }
   });
@@ -316,12 +359,13 @@ app.get("/pay", (req, res) => {
 app.get("/log", (req, res) => {
   res.sendFile(__dirname + "/loggedin.html");
 });
-app.get("/checkk", (req, res) => {
+
+////////////////////////////////// UPDATES STARTS //////////////////////////////////
+app.get("/user-data", isAuth, (req, res) => {
   if (req.isAuthenticated()) {
-    console.log(req.session.id);
-    res.send("logged innn");
-  } else {
-    res.send("not logged in login first");
+    // console.log(req.user);
+    res.status(200).json({ LoggedInUserData: req.user, Token: req.session.id });
+    // res.status(200).json("")
   }
   // res.json(req.user)
   // req.app.locals.userId = req.user.fullName;
@@ -335,6 +379,8 @@ app.get("/checkk", (req, res) => {
 
   //   }
 });
+
+////////////////////////////////// UPDATES END //////////////////////////////////
 
 ///////////////////////////////////////// ___SERVER PORT___////////////////////////
 const port = process.env.PORT || 3000;
