@@ -361,23 +361,17 @@ app.get("/log", (req, res) => {
 });
 
 ////////////////////////////////// UPDATES STARTS //////////////////////////////////
-app.get("/user-data", isAuth, (req, res) => {
-  if (req.isAuthenticated()) {
-    // console.log(req.user);
-    res.status(200).json({ LoggedInUserData: req.user, Token: req.session.id });
-    // res.status(200).json("")
-  }
-  // res.json(req.user)
-  // req.app.locals.userId = req.user.fullName;
-  // let name=req.user.fullName;
-  // res.send(name);
-  // res.send(req.app.locals.userId);
-  //   if(req.user!==null){
-  //   res.sendFile(__dirname + "/loggedin.html");
-  // }
-  //   else{  res.sendFile(__dirname + "/nouser.html");
+app.get("/:id", isAuth, (req, res) => {
+  User.findOne({ _id: req.params.id }, async function (err, user) {
+    if (!err) {
+      res.status(200).json({ userData: user });
+    }
+    if (err) {
+      res.status(400).json({ error: err });
+    }
+  });
 
-  //   }
+  // res.status(200).json({ LoggedInUserData: req.user, Token: req.session.id });
 });
 
 ////////////////////////////////// UPDATES END //////////////////////////////////
