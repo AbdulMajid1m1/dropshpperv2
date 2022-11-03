@@ -166,7 +166,7 @@ router.get("/drivers/deliveries/completed", isAuth, function (req, res) {
 });
 
 // DRIVERS POST REQUEST ///////////////////////////
-router.post("/drivers", isAuth, (req, res) => {
+router.post("/drivers", (req, res) => {
   Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
     if (err) {
       res.status(400).json({ error: err });
