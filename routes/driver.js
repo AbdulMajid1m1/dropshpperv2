@@ -222,7 +222,7 @@ router.post("/drivers", (req, res) => {
             // res.redirect("/drivers/homepage");
           } else {
             // console.log(driver);
-            res.json("registeraton failed");
+            res.stat(404).json("registeraton failed");
           }
         });
         // });
