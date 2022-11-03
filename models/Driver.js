@@ -22,7 +22,8 @@ const driverSchema = new mongoose.Schema(
       required: [true, "License back image is required"],
     },
 
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
+    // user: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
+    user: { type: String, default: "" },
     parcelsUnderway: [
       { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
     ],
