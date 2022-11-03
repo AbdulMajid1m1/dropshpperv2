@@ -166,7 +166,7 @@ router.get("/drivers/deliveries/completed", isAuth, function (req, res) {
 });
 
 // DRIVERS POST REQUEST ///////////////////////////
-router.post("/drivers", (req, res) => {
+router.post("/drivers", isAuth, (req, res) => {
   Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
     if (err) {
       res.status(400).json({ error: err });
@@ -221,7 +221,7 @@ router.post("/drivers", (req, res) => {
             // res.redirect("/drivers/homepage");
           } else {
             // console.log(driver);
-            res.json("registeraton failed");
+            res.send("registeraton failed");
           }
         });
         // });
