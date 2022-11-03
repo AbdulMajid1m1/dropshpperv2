@@ -169,7 +169,6 @@ router.get("/drivers/deliveries/completed", isAuth, function (req, res) {
 router.post("/drivers", isAuth, (req, res) => {
   Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
     if (err) {
-      console.log(err);
       res.status(400).json({ error: err });
     } else {
       if (driver == null) {
@@ -198,8 +197,7 @@ router.post("/drivers", isAuth, (req, res) => {
         });
         driver.save().then((driver) => {
           if (driver) {
-            console.log(driver);
-            res.json(driver);
+            res.status(200).json({ driverData: driver });
             User.findOneAndUpdate(
               { _id: uniqueId },
               {
@@ -223,7 +221,7 @@ router.post("/drivers", isAuth, (req, res) => {
             // res.redirect("/drivers/homepage");
           } else {
             // console.log(driver);
-            res.send("registeraton failed");
+            res.json("registeraton failed");
           }
         });
         // });
