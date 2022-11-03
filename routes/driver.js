@@ -170,7 +170,7 @@ router.post("/drivers", isAuth, (req, res) => {
   Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
     if (err) {
       console.log(err);
-      res.json(err);
+      res.status(400).json({ error: err });
     } else {
       if (driver == null) {
         const frontImg = req.files.frontImg;
@@ -181,7 +181,7 @@ router.post("/drivers", isAuth, (req, res) => {
           cloudinary.uploader.upload(backImg.tempFilePath, (err, result2) => {
             // console.log(result2);
             let uniqueId =
-              req.user == undefined ? req.app.locals.userId._id : req.user._id;
+              req.user === undefined ? req.app.locals.userId._id : req.user._id;
             let userId = uniqueId;
 
             const driver = Driver({
