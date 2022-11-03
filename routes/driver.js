@@ -180,9 +180,9 @@ router.post("/drivers", (req, res) => {
         // const backImg = req.files.backImg;
         // cloudinary.uploader.upload(backImg.tempFilePath, (err, result2) => {
         // console.log(result2);
-        let uniqueId =
-          req.user === undefined ? req.app.locals.userId._id : req.user._id;
-        let userId = uniqueId;
+        // let uniqueId =
+        //   req.user === undefined ? req.app.locals.userId._id : req.user._id;
+        // let userId = uniqueId;
 
         const driver = Driver({
           name: req.body.name,
@@ -192,7 +192,7 @@ router.post("/drivers", (req, res) => {
           year: req.body.year,
           licenseNumber: req.body.licenseNumber,
           DrivingFor: req.body.DrivingFor,
-          user: userId,
+          // user: userId,
           licenseFrontImg: req.body.frontImg,
           licenseBackImg: req.body.backImg,
         });
