@@ -115,14 +115,11 @@ router.post("/profiles/user-information", isAuth, function (req, res) {
             }
           });
         });
-        console.log("try run");
       } catch (e) {
-        console.log("catch run");
 
         User.findOne({ username: req.body.username }, (err, foundUser) => {
           if (err) {
             console.log(err);
-            console.log("dfadsfdsafasdf");
           } else {
             if (foundUser == null) {
               User.findOneAndUpdate(
