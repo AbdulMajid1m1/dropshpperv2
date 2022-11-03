@@ -221,7 +221,7 @@ router.post("/drivers", isAuth, (req, res) => {
             // res.redirect("/drivers/homepage");
           } else {
             // console.log(driver);
-            res.send("registeraton failed");
+            res.json("registeraton failed");
           }
         });
         // });
