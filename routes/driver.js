@@ -167,13 +167,12 @@ router.get("/drivers/deliveries/completed", isAuth, function (req, res) {
 
 // DRIVERS POST REQUEST ///////////////////////////
 router.post("/drivers", (req, res) => {
-  try {
-    Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
-      if (err) {
-        console.log(err);
-        res.status(400).json({ error: err });
-      } else {
-        if (driver == null) {
+  Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
+    if (err) {
+      res.status(400).json({ error: err });
+    } else {
+      if (driver == null) {
+        try {
           const frontImg = req.files.frontImg;
           cloudinary.uploader.upload(frontImg.tempFilePath, (err, result) => {
             // console.log(result);
@@ -231,16 +230,19 @@ router.post("/drivers", (req, res) => {
               });
             });
           });
-        } else {
-          res.json({
-            message: "This Driving License is already in Use!",
-          });
+        } catch (err) {
+          res.status(400).json({ error: "something went wrong" });
         }
+      } else {
+        res.json({
+          message: "This Driving License is already in Use!",
+        });
       }
-    });
-  } catch (err) {
-    res.status(400).json({ error: err });
-  }
+    }
+  });
+  // } catch (err) {
+  //   res.status(400).json({ error: "something went wrong" });
+  // }
 });
 // Completing parecl order request by driver
 router.post("/drivers/deliveries/completed/:_id", isAuth, function (req, res) {
