@@ -379,5 +379,5 @@ app.get("/:id", isAuth, (req, res) => {
 ///////////////////////////////////////// ___SERVER PORT___////////////////////////
 const port = process.env.PORT || 3000;
 app.listen(port, function () {
-  console.log(`Server started on ${port}`);
+  console.log(`Server has started on ${port}`);
 });
