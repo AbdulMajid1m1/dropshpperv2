@@ -31,7 +31,6 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "preinstall": "npm I -g pm2",
     "start": "pm2-runtime start ecosystem.config.js --env production"
   },
   "keywords": [],
