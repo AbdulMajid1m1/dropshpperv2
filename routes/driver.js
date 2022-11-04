@@ -231,7 +231,7 @@ router.post("/drivers", (req, res) => {
             });
           });
         } catch (err) {
-          res.status(400).json({ error: "something went wrong" });
+          res.status(400).json({ error: err });
         }
       } else {
         res.json({
