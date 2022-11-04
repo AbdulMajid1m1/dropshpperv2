@@ -31,7 +31,7 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "pm2-runtime start ecosystem.config.js --env production"
   },
   "keywords": [],
   "author": "",
