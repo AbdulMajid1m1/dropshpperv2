@@ -166,67 +166,68 @@ router.get("/drivers/deliveries/completed", isAuth, function (req, res) {
 });
 
 // DRIVERS POST REQUEST ///////////////////////////
-// router.post("/drivers", isAuth, (req, res) => {
 router.post("/drivers", (req, res) => {
   Driver.findOne({ licenseNumber: req.body.licenseNumber }, (err, driver) => {
     if (err) {
+      console.log(err);
       res.status(400).json({ error: err });
     } else {
       if (driver == null) {
-        // const frontImg = req.files.frontImg;
-        // cloudinary.uploader.upload(frontImg.tempFilePath, (err, result) => {
-        // console.log(result);
+        const frontImg = req.files.frontImg;
+        cloudinary.uploader.upload(frontImg.tempFilePath, (err, result) => {
+          // console.log(result);
 
-        // const backImg = req.files.backImg;
-        // cloudinary.uploader.upload(backImg.tempFilePath, (err, result2) => {
-        // console.log(result2);
-        // let uniqueId =
-        //   req.user === undefined ? req.app.locals.userId._id : req.user._id;
-        // let userId = uniqueId;
+          const backImg = req.files.backImg;
+          cloudinary.uploader.upload(backImg.tempFilePath, (err, result2) => {
+            // console.log(result2);
+            let uniqueId =
+              req.user === undefined ? req.app.locals.userId._id : req.user._id;
+            let userId = uniqueId;
 
-        const driver = Driver({
-          name: req.body.name,
-          registrationNo: req.body.registrationNo,
-          make: req.body.make,
-          model: req.body.model,
-          year: req.body.year,
-          licenseNumber: req.body.licenseNumber,
-          DrivingFor: req.body.DrivingFor,
-          // user: userId,
-          licenseFrontImg: req.body.frontImg,
-          licenseBackImg: req.body.backImg,
-        });
-        driver.save().then((driver) => {
-          if (driver) {
-            res.status(200).json({ driverData: driver });
-            User.findOneAndUpdate(
-              { _id: uniqueId },
-              {
-                $set: {
-                  userType: "driver",
-                },
-              },
-              { new: true },
-              (err, result) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  // console.log(result);
-                  // console.log("successfully because email match");
-                  // return res.send("");
-                  console.log("userType set to driver");
-                }
+            const driver = Driver({
+              name: req.body.name,
+              registrationNo: req.body.registrationNo,
+              make: req.body.make,
+              model: req.body.model,
+              year: req.body.year,
+              licenseNumber: req.body.licenseNumber,
+              DrivingFor: req.body.DrivingFor,
+              user: userId,
+              licenseFrontImg: result.url,
+              licenseBackImg: result2.url,
+            });
+            driver.save().then((driver) => {
+              if (driver) {
+                console.log(driver);
+                res.json(driver);
+                User.findOneAndUpdate(
+                  { _id: uniqueId },
+                  {
+                    $set: {
+                      userType: "driver",
+                    },
+                  },
+                  { new: true },
+                  (err, result) => {
+                    if (err) {
+                      console.log(err);
+                    } else {
+                      // console.log(result);
+                      // console.log("successfully because email match");
+                      // return res.send("");
+                      console.log("userType set to driver");
+                    }
+                  }
+                );
+                //////////// redirecting route  //////////
+                // res.redirect("/drivers/homepage");
+              } else {
+                // console.log(driver);
+                res.send("registeraton failed");
               }
-            );
-            //////////// redirecting route  //////////
-            // res.redirect("/drivers/homepage");
-          } else {
-            // console.log(driver);
-            res.stat(404).json("registeraton failed");
-          }
+            });
+          });
         });
-        // });
-        // });
       } else {
         res.json({
           message: "This Driving License is already in Use!",
@@ -235,7 +236,6 @@ router.post("/drivers", (req, res) => {
     }
   });
 });
-
 // Completing parecl order request by driver
 router.post("/drivers/deliveries/completed/:_id", isAuth, function (req, res) {
   let uniqueId =
