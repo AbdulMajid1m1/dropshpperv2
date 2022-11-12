@@ -1,6 +1,6 @@
 //jshint esversion:6
 require("dotenv").config();
-var cookieSession = require("cookie-session");
+// var cookieSession = require("cookie-session");
 const express = require("express");
 var flash = require("connect-flash");
 const fileUpload = require("express-fileupload");
@@ -11,6 +11,7 @@ const cors = require("cors");
 // models
 const CustomerOrder = require("./models/CustomerOrder");
 const User = require("./models/User");
+const Driver = require("./models/Driver");
 const conversationRoute = require("./routes/conversations");
 const messageRoute = require("./routes/messages");
 const session = require("express-session");
@@ -248,72 +249,85 @@ app.get("/logout", function (req, res, next) {
 });
 // Register Route
 app.post("/register", function (req, res) {
-  try {
-    const userPicture = req.files.userPicture;
-    cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
-      if (!err) {
-        User.register(
-          {
-            username: req.body.username,
-            fullName: req.body.fullName,
-            mobileNumber: req.body.mobileNumber,
-            userPicture: picture.url,
-          },
-          req.body.password,
-          function (err, user) {
-            if (err) {
-              res.status(400).json({ error: err });
-            } else {
-              passport.authenticate("local")(req, res, function () {
-                user.save();
-                console.log(user._id);
+  // try {
+  //   const userPicture = req.files.userPicture;
+  //   cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
+  //     if (!err) {
+  //       User.register(
+  //         {
+  //           username: req.body.username,
+  //           fullName: req.body.fullName,
+  //           mobileNumber: req.body.mobileNumber,
+  //           userPicture: picture.url,
+  //         },
+  //         req.body.password,
+  //         function (err, user) {
+  //           if (err) {
+  //             res.status(400).json({ error: err });
+  //           } else {
+  //             passport.authenticate("local")(req, res, function () {
+  //               user.save();
+  //               console.log(user._id);
 
-                // res.redirect("/catogeries");
-                // res.json(user);
-                req.session.isAuth = true;
-                res.status(200).json({
-                  success: true,
-                  Token: req.session.id,
-                  uuid: req.user._id,
-                });
-              });
-            }
-          }
-        );
-      } else {
+  //               // res.redirect("/catogeries");
+  //               // res.json(user);
+  //               req.session.isAuth = true;
+  //               res.status(200).json({
+  //                 success: true,
+  //                 Token: req.session.id,
+  //                 uuid: req.user._id,
+  //               });
+  //             });
+  //           }
+  //         }
+  //       );
+  //     } else {
+  //       res.status(400).json({ error: err });
+  //     }
+  //   });
+  // } catch (err) {
+  User.register(
+    {
+      username: req.body.username,
+
+      fullName: req.body.fullName,
+      mobileNumber: req.body.mobileNumber,
+      country: req.body.country,
+      region: req.body.region,
+      city: req.body.city,
+      streetAddress: req.body.streetAddress,
+      NameOnLicense: req.body.NameOnLicense,
+      registrationNo: req.body.registrationNo,
+      make: req.body.make,
+      model: req.body.model,
+      year: req.body.year,
+      licenseNumber: req.body.licenseNumber,
+      DrivingFor: req.body.DrivingFor,
+      // userType: req.body.userType,
+    },
+    req.body.password,
+    function (err, user) {
+      if (err) {
         res.status(400).json({ error: err });
-      }
-    });
-  } catch (err) {
-    User.register(
-      {
-        username: req.body.username,
+      } else {
+        passport.authenticate("local")(req, res, function () {
+          user.save();
+          console.log(user._id);
 
-        fullName: req.body.fullName,
-        mobileNumber: req.body.mobileNumber,
-      },
-      req.body.password,
-      function (err, user) {
-        if (err) {
-          res.status(400).json({ error: err });
-        } else {
-          passport.authenticate("local")(req, res, function () {
-            user.save();
-            console.log(user._id);
-
-            // res.redirect("/catogeries");
-            // res.json(user);
-            req.session.isAuth = true;
-            res.status(200).json({
-              success: true,
-              Token: req.session.id,
-              uuid: req.user._id,
-            });
+          // res.redirect("/catogeries");
+          // res.json(user);
+          req.session.isAuth = true;
+          res.status(200).json({
+            userData: req.user,
+            success: true,
+            Token: req.session.id,
+            uuid: req.user._id,
           });
-        }
+        });
       }
-    );
-  }
+    }
+  );
+  // }
 });
 //Login Route
 app.post("/login", function (req, res) {

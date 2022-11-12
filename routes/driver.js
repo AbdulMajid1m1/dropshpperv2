@@ -201,7 +201,7 @@ router.post("/drivers", (req, res) => {
               driver.save().then((driver) => {
                 if (driver) {
                   console.log(driver);
-                  res.json(driver);
+                  res.status(200).json({ dtiverData: driver });
                   User.findOneAndUpdate(
                     { _id: uniqueId },
                     {

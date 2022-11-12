@@ -3,7 +3,21 @@ const mongoose = require("mongoose");
 // DRIVER SCHEMA
 const driverSchema = new mongoose.Schema(
   {
-    name: { type: String, required: [true, "Name is required"] },
+    fullName: { type: String, default: "" },
+    mobileNumber: { type: String, default: "" },
+    username: {
+      type: String,
+      unique: true,
+    },
+    password: String,
+    country: { type: String, default: "" },
+    region: { type: String, default: "" },
+    city: { type: String, default: "" },
+    streetAddress: { type: String, default: "" },
+    // userType: { type: String, default: "" },
+    NameOnLicense: { type: String, required: [true, "Name is required"] },
+
+    userPicture: { type: String, default: "" },
     registrationNo: String,
     make: Number,
     model: Number,
@@ -23,20 +37,20 @@ const driverSchema = new mongoose.Schema(
     },
 
     // user: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
-    user: { type: String, default: "" },
-    parcelsUnderway: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
-    ],
-    parcelsCompleted: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
-    ],
-    reviews: [
-      {
-        reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
-        rating: Number,
-        review: String,
-      },
-    ],
+    // user: { type: String, default: "" },
+    // parcelsUnderway: [
+    //   { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
+    // ],
+    // parcelsCompleted: [
+    //   { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
+    // ],
+    // reviews: [
+    //   {
+    //     reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
+    //     rating: Number,
+    //     review: String,
+    //   },
+    // ],
   },
   { timestamps: true }
 );
