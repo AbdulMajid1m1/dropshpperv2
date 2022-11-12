@@ -14,28 +14,24 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     password: String,
-    googleId: String,
-    facebookId: String,
+    // googleId: String,
+    // facebookId: String,
     country: { type: String, default: "" },
     region: { type: String, default: "" },
     city: { type: String, default: "" },
     streetAddress: { type: String, default: "" },
-    // userType: { type: String, default: "" },
-    userPicture: { type: String, default: "" },
     NameOnLicense: { type: String, required: [true, "Name is required"] },
     registrationNo: String,
     make: Number,
-    model: Number,
     year: Number,
     licenseNumber: {
       type: Number,
       required: [true, "License Number is required"],
     },
     DrivingFor: Number,
-    // pendingOrders: [
-    //   { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
-    // ],
+    Model:Number,
   },
+  
   { timestamps: true }
 );
 

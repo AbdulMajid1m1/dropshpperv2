@@ -288,9 +288,8 @@ app.post("/register", function (req, res) {
   // } catch (err) {
   User.register(
     {
-      username: req.body.username,
-
       fullName: req.body.fullName,
+      username: req.body.username,
       mobileNumber: req.body.mobileNumber,
       country: req.body.country,
       region: req.body.region,
@@ -299,11 +298,11 @@ app.post("/register", function (req, res) {
       NameOnLicense: req.body.NameOnLicense,
       registrationNo: req.body.registrationNo,
       make: req.body.make,
-      model: req.body.model,
       year: req.body.year,
-      licenseNumber: req.body.licenseNumber,
-      DrivingFor: req.body.DrivingFor,
-      // userType: req.body.userType,
+      licenseNumber:req.body.licenseNumber,
+      Model:req.body.Model,
+      DrivingFor:req.body.DrivingFor,
+
     },
     req.body.password,
     function (err, user) {
