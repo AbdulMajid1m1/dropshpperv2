@@ -102,13 +102,13 @@ store.on("error", function (error) {
 });
 
 // mongoose.set("useCreateIndex", true);
-passport.use(User.createStrategy());
+passport.use(Driver.createStrategy());
 passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
 
 passport.deserializeUser(function (id, done) {
-  User.findById(id, function (err, user) {
+  Driver.findById(id, function (err, user) {
     done(err, user);
   });
 });
@@ -286,7 +286,7 @@ app.post("/register", function (req, res) {
   //     }
   //   });
   // } catch (err) {
-  User.register(
+  Driver.register(
     {
       fullName: req.body.fullName,
       username: req.body.username,
@@ -299,10 +299,9 @@ app.post("/register", function (req, res) {
       registrationNo: req.body.registrationNo,
       make: req.body.make,
       year: req.body.year,
-      licenseNumber:req.body.licenseNumber,
-      Model:req.body.Model,
-      DrivingFor:req.body.DrivingFor,
-
+      licenseNumber: req.body.licenseNumber,
+      Model: req.body.Model,
+      DrivingFor: req.body.DrivingFor,
     },
     req.body.password,
     function (err, user) {
@@ -330,7 +329,7 @@ app.post("/register", function (req, res) {
 });
 //Login Route
 app.post("/login", function (req, res) {
-  const user = new User({
+  const user = new Driver({
     username: req.body.username,
     password: req.body.password,
   });
@@ -342,23 +341,28 @@ app.post("/login", function (req, res) {
         // res.redirect("/catogeries");
         // app.set("myvar", user._id);
         console.log(req.user._id);
-        User.findOne({ _id: req.user._id }, function (err, user) {
-          if (!err) {
-            if (user.userType === "driver") {
-              console.log("send drivers home page");
-            } else if (user.userType === "customer") {
-              console.log("send customers home page");
-            } else {
-              console.log("send categories home page");
-            }
-          }
-        });
+        // User.findOne({ _id: req.user._id }, function (err, user) {
+        //   if (!err) {
+        //     if (user.userType === "driver") {
+        //       console.log("send drivers home page");
+        //     } else if (user.userType === "customer") {
+        //       console.log("send customers home page");
+        //     } else {
+        //       console.log("send categories home page");
+        //     }
+        //   }
+        // });
         req.session.isAuth = true;
         // res.send("<h1>You are LogedIn!</h1>");
         // res.redirect("/checkk");
         res
           .status(200)
-          .json({ success: true, Token: req.session.id, uuid: req.user._id });
+          .json({
+            userData: req.user,
+            success: true,
+            Token: req.session.id,
+            uuid: req.user._id,
+          });
       });
     }
   });
@@ -372,6 +376,9 @@ app.get("/pay", (req, res) => {
 app.get("/log", (req, res) => {
   res.sendFile(__dirname + "/loggedin.html");
 });
+// app.post("/delte", (req, res) => {
+//   User.remove({}, (err, user) => {});
+// });
 
 ////////////////////////////////// UPDATES STARTS //////////////////////////////////
 app.get("/:id", isAuth, (req, res) => {
