@@ -286,45 +286,49 @@ app.post("/register", function (req, res) {
   //     }
   //   });
   // } catch (err) {
-  Driver.register(
-    {
-      fullName: req.body.fullName,
-      username: req.body.username,
-      mobileNumber: req.body.mobileNumber,
-      country: req.body.country,
-      region: req.body.region,
-      city: req.body.city,
-      streetAddress: req.body.streetAddress,
-      NameOnLicense: req.body.NameOnLicense,
-      registrationNo: req.body.registrationNo,
-      make: req.body.make,
-      year: req.body.year,
-      licenseNumber: req.body.licenseNumber,
-      Model: req.body.Model,
-      DrivingFor: req.body.DrivingFor,
-    },
-    req.body.password,
-    function (err, user) {
-      if (err) {
-        res.status(400).json({ error: err });
-      } else {
-        passport.authenticate("local")(req, res, function () {
-          user.save();
-          console.log(user._id);
+  try {
+    Driver.register(
+      {
+        fullName: req.body.fullName,
+        username: req.body.username,
+        mobileNumber: req.body.mobileNumber,
+        country: req.body.country,
+        region: req.body.region,
+        city: req.body.city,
+        streetAddress: req.body.streetAddress,
+        NameOnLicense: req.body.NameOnLicense,
+        registrationNo: req.body.registrationNo,
+        make: req.body.make,
+        year: req.body.year,
+        licenseNumber: req.body.licenseNumber,
+        Model: req.body.Model,
+        DrivingFor: req.body.DrivingFor,
+      },
+      req.body.password,
+      function (err, user) {
+        if (err) {
+          res.status(400).json({ error: err });
+        } else {
+          passport.authenticate("local")(req, res, function () {
+            user.save();
+            console.log(user._id);
 
-          // res.redirect("/catogeries");
-          // res.json(user); ok
-          req.session.isAuth = true;
-          res.status(200).json({
-            userData: req.user,
-            success: true,
-            Token: req.session.id,
-            uuid: req.user._id,
+            // res.redirect("/catogeries");
+            // res.json(user); ok
+            req.session.isAuth = true;
+            res.status(200).json({
+              userData: req.user,
+              success: true,
+              Token: req.session.id,
+              uuid: req.user._id,
+            });
           });
-        });
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    res.status(400).json({ error: err });
+  }
   // }
 });
 //Login Route
@@ -355,14 +359,12 @@ app.post("/login", function (req, res) {
         req.session.isAuth = true;
         // res.send("<h1>You are LogedIn!</h1>");
         // res.redirect("/checkk");
-        res
-          .status(200)
-          .json({
-            userData: req.user,
-            success: true,
-            Token: req.session.id,
-            uuid: req.user._id,
-          });
+        res.status(200).json({
+          userData: req.user,
+          success: true,
+          Token: req.session.id,
+          uuid: req.user._id,
+        });
       });
     }
   });
