@@ -313,7 +313,7 @@ app.post("/register", function (req, res) {
           console.log(user._id);
 
           // res.redirect("/catogeries");
-          // res.json(user);
+          // res.json(user); ok
           req.session.isAuth = true;
           res.status(200).json({
             userData: req.user,
