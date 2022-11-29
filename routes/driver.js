@@ -111,7 +111,7 @@ router.post("/update/driver-profile/:id", function (req, res) {
                     if (err) {
                       res.status(400).json({ Error: err });
                     } else {
-                      return res.status(200).json({ UpdatedInfo: result });
+                      return res.status(200).json({ DriverData: result });
                     }
                   }
                 );
@@ -165,6 +165,52 @@ router.post("/update/driver-address/:id", function (req, res) {
     }
   });
 });
+
+//////////// ------------- driver License Info start ----------//////////////
+
+router.post("/update/driver-license-info/:id", function (req, res) {
+  Driver.findOne({ _id: req.params.id }, (err, user) => {
+    if (err) {
+      return res.status(400).json({ Error: err });
+    } else {
+      Driver.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          $set: {
+            NameOnLicense:
+              req.body.NameOnLicense.length === 0
+                ? user.NameOnLicense
+                : req.body.NameOnLicense,
+            registrationNo:
+              req.body.registrationNo.length === 0
+                ? user.registrationNo
+                : req.body.registrationNo,
+            make: req.body.make.length === 0 ? user.make : req.body.make,
+            year: req.body.year.length === 0 ? user.year : req.body.year,
+            licenseNumber:
+              req.body.licenseNumber.length === 0
+                ? user.licenseNumber
+                : req.body.licenseNumber,
+            DrivingFor:
+              req.body.DrivingFor.length === 0
+                ? user.DrivingFor
+                : req.body.DrivingFor,
+            Model: req.body.Model.length === 0 ? user.Model : req.body.Model,
+          },
+        },
+        { new: true },
+        (err, result) => {
+          if (err) {
+            res.status(400).json({ Error: err });
+          } else {
+            res.status(200).json({ DriverData: result });
+          }
+        }
+      );
+    }
+  });
+});
+//////////// ------------- driver License Info end ----------//////////////
 //////// --------------- POST REQUEST END -------------//////////////
 
 // --------------------- NEW API END-------------------////
@@ -172,7 +218,6 @@ router.post("/update/driver-address/:id", function (req, res) {
 router.get("/drivers", isAuth, function (req, res) {
   res.send("Drivers Registration Page");
 });
-
 
 /////  GET DIVER DATA START /////////////
 router.get("/get-driver-data/:id", function (req, res) {
