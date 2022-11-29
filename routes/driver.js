@@ -136,7 +136,7 @@ router.post("/update/driver-profile/:id", function (req, res) {
 router.post("/update/driver-address/:id", function (req, res) {
   Driver.findOne({ _id: req.params.id }, (err, user) => {
     if (err) {
-      return res.json(err);
+      return res.status(400).json({ Error: err });
     } else {
       Driver.findOneAndUpdate(
         { _id: req.params.id },
@@ -215,9 +215,9 @@ router.post("/update/driver-license-info/:id", function (req, res) {
 
 // --------------------- NEW API END-------------------////
 //Selecting Drivers Category.
-router.get("/drivers", isAuth, function (req, res) {
-  res.send("Drivers Registration Page");
-});
+// router.get("/drivers", isAuth, function (req, res) {
+//   res.send("Drivers Registration Page");
+// });
 
 /////  GET DIVER DATA START /////////////
 router.get("/get-driver-data/:id", function (req, res) {

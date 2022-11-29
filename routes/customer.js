@@ -136,6 +136,170 @@ router.get("/customers/orders", isAuth, function (req, res) {
   res.send("Send Order details form");
 });
 
+// ************* Updated Routes *************
+
+router.post("/update/customer-profile/:id", function (req, res) {
+  // let uniqueId =
+  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+
+  User.findOne({ _id: req.params.id }, function (err, user) {
+    if (!err) {
+      try {
+        // const userPicture = req.files.userPicture;
+        // cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
+
+        if (user.username === req.body.username) {
+          User.findOneAndUpdate(
+            { _id: req.params.id },
+            // {
+            //   $set: {
+            //     fullName:
+            //       req.body.fullName.length === 0
+            //         ? user.fullName
+            //         : req.body.fullName,
+            //     mobileNumber:
+            //       req.body.mobileNumber.length === 0
+            //         ? user.mobileNumber
+            //         : req.body.mobileNumber,
+            //     username:
+            //       req.body.username.length === 0
+            //         ? user.username
+            //         : req.body.username,
+            //     userPicture: picture.url,
+            //   },
+            // },
+            {
+              $set: {
+                fullName:
+                  req.body.fullName.length === 0
+                    ? user.fullName
+                    : req.body.fullName,
+                mobileNumber:
+                  req.body.mobileNumber.length === 0
+                    ? user.mobileNumber
+                    : req.body.mobileNumber,
+                username:
+                  req.body.username.length === 0
+                    ? user.username
+                    : req.body.username,
+              },
+            },
+            { new: true },
+            (err, result) => {
+              if (err) {
+                res.status(400).json({ Error: err });
+              } else {
+                return res.status(200).json({ CustomerData: result });
+              }
+            }
+          );
+        } else {
+          User.findOne({ username: req.body.username }, (err, foundUser) => {
+            if (err) {
+              res.status(400).json({ Error: err });
+            } else {
+              if (foundUser === null) {
+                User.findOneAndUpdate(
+                  { _id: req.params.id },
+                  // {
+                  //   $set: {
+                  //     fullName:
+                  //       req.body.fullName.length === 0
+                  //         ? user.fullName
+                  //         : req.body.fullName,
+                  //     mobileNumber:
+                  //       req.body.mobileNumber.length === 0
+                  //         ? user.mobileNumber
+                  //         : req.body.mobileNumber,
+                  //     username:
+                  //       req.body.username.length === 0
+                  //         ? user.username
+                  //         : req.body.username,
+                  //     userPicture: picture.url,
+                  //   },
+                  // },
+                  {
+                    $set: {
+                      fullName:
+                        req.body.fullName.length === 0
+                          ? user.fullName
+                          : req.body.fullName,
+                      mobileNumber:
+                        req.body.mobileNumber.length === 0
+                          ? user.mobileNumber
+                          : req.body.mobileNumber,
+                      username:
+                        req.body.username.length === 0
+                          ? user.username
+                          : req.body.username,
+                    },
+                  },
+                  { new: true },
+                  (err, result) => {
+                    if (err) {
+                      res.status(400).json({ Error: err });
+                    } else {
+                      return res.status(200).json({ CustomerData: result });
+                    }
+                  }
+                );
+              } else {
+                res.send({ message: "This username already in use" });
+              }
+            }
+          });
+        }
+      } catch (e) {
+        res.status(400).json({ Error: e });
+      }
+    }
+    if (err) {
+      res.status(400).json({ Error: err });
+    }
+  });
+});
+
+// Address update form
+
+router.post("/update/customer-address/:id", function (req, res) {
+  try {
+    User.findOne({ _id: req.params.id }, (err, user) => {
+      if (err) {
+        return res.status(400).json({ Error: err });
+      } else {
+        User.findOneAndUpdate(
+          { _id: req.params.id },
+          {
+            $set: {
+              country:
+                req.body.country.length === 0 ? user.country : req.body.country,
+              region:
+                req.body.region.length === 0 ? user.region : req.body.region,
+              city: req.body.city.length === 0 ? user.city : req.body.city,
+              streetAddress:
+                req.body.streetAddress.length === 0
+                  ? user.streetAddress
+                  : req.body.streetAddress,
+            },
+          },
+          { new: true },
+          (err, result) => {
+            if (err) {
+              res.status(400).json({ Error: err });
+            } else {
+              res.status(200).json({ UpdatedData: result });
+            }
+          }
+        );
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ error: error });
+  }
+});
+
+// ************* Updated Routes *************
+
 //Receiver Review........
 router.post("/customers/receiver-review/:_id", isAuth, function (req, res) {
   let uniqueId =

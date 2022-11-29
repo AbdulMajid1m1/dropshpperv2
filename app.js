@@ -377,6 +377,8 @@ app.post("/driver-register", function (req, res) {
   // }
 });
 //Login Route
+//////////////// ******** Driver Login Route ************* ///////////////
+
 app.post("/login", function (req, res) {
   const user = new Driver({
     username: req.body.username,
@@ -384,7 +386,31 @@ app.post("/login", function (req, res) {
   });
   req.login(user, function (err) {
     if (err) {
-      console.log(err);
+      res.status(400).json({ error: err });
+    } else {
+      passport.authenticate("local")(req, res, function () {
+        console.log(req.user._id);
+        req.session.isAuth = true;
+        res.status(200).json({
+          userData: req.user,
+          success: true,
+          Token: req.session.id,
+          uuid: req.user._id,
+        });
+      });
+    }
+  });
+});
+
+//////////////// ******** Customer Login Route ************* ///////////////
+app.post("/customer-login", function (req, res) {
+  const user = new User({
+    username: req.body.username,
+    password: req.body.password,
+  });
+  req.login(user, function (err) {
+    if (err) {
+      res.status(400).json({ error: err });
     } else {
       passport.authenticate("local")(req, res, function () {
         console.log(req.user._id);
