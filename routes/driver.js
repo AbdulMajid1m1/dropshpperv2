@@ -6,6 +6,12 @@ const Conversation = require("../models/Conversation");
 const cloudinary = require("cloudinary").v2;
 const isAuth = require("../middleware/auth");
 
+// --------------------- NEW API  START-------------------////
+
+
+
+
+// --------------------- NEW API END-------------------////
 //Selecting Drivers Category.
 router.get("/drivers", isAuth, function (req, res) {
   res.send("Drivers Registration Page");

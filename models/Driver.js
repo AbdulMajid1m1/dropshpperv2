@@ -57,7 +57,6 @@
 
 // module.exports = mongoose.model("Driver", driverSchema);
 
-
 var uniqueValidator = require("mongoose-unique-validator");
 const passportLocalMongoose = require("passport-local-mongoose");
 const findOrCreate = require("mongoose-findorcreate");
@@ -82,16 +81,16 @@ const driverSchema = new mongoose.Schema(
     streetAddress: { type: String, default: "" },
     NameOnLicense: { type: String, required: [true, "Name is required"] },
     registrationNo: String,
-    make: Number,
-    year: Number,
+    make: String,
+    year: String,
     licenseNumber: {
-      type: Number,
+      type: String,
       required: [true, "License Number is required"],
     },
-    DrivingFor: Number,
-    Model:Number,
+    DrivingFor: String,
+    Model: String,
   },
-  
+
   { timestamps: true }
 );
 

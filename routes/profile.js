@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const User = require("../models/User");
+const Driver = require("../models/Driver");
 const Notification = require("../models/Notification");
 const cloudinary = require("cloudinary").v2;
 const isAuth = require("../middleware/auth");
@@ -64,23 +65,113 @@ router.post("/register/address-info", isAuth, function (req, res) {
 
 // updating address info
 
-router.post("/profiles/user-information", isAuth, function (req, res) {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
+/////  GET DIVER DATA START /////////////
+router.get("/get-driver-data/:id", function (req, res) {
+  Driver.findOne({ _id: req.params.id }, function (err, user) {
+    if (!err) {
+      res.status(200).json({ DriverData: user, uuid: user._id });
+    }
+    if (err) {
+      res.status(400).json({ Error: err });
+    }
+  });
+});
+/////  GET DIVER DATA END /////////////
 
-  User.findOne({ _id: uniqueId }, isAuth, function (err, user) {
+router.post("/upload-img", function (req, res) {
+  try {
+    const userPicture = req.files.userPicture;
+    cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
+      if (!err) {
+        res.status(200).json({ PictureUrl: picture.url });
+      } else {
+        res.status(400).json({ error: err });
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ Error: error });
+  }
+});
+router.post("/update/driver-profile/:id", function (req, res) {
+  // let uniqueId =
+  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+
+  Driver.findOne({ _id: req.params.id }, function (err, user) {
     if (!err) {
       try {
-        const userPicture = req.files.userPicture;
-        cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
-          User.findOne({ username: req.body.username }, (err, foundUser) => {
+        // const userPicture = req.files.userPicture;
+        // cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
+
+        if (user.username === req.body.username) {
+          Driver.findOneAndUpdate(
+            { _id: req.params.id },
+            // {
+            //   $set: {
+            //     fullName:
+            //       req.body.fullName.length === 0
+            //         ? user.fullName
+            //         : req.body.fullName,
+            //     mobileNumber:
+            //       req.body.mobileNumber.length === 0
+            //         ? user.mobileNumber
+            //         : req.body.mobileNumber,
+            //     username:
+            //       req.body.username.length === 0
+            //         ? user.username
+            //         : req.body.username,
+            //     userPicture: picture.url,
+            //   },
+            // },
+            {
+              $set: {
+                fullName:
+                  req.body.fullName.length === 0
+                    ? user.fullName
+                    : req.body.fullName,
+                mobileNumber:
+                  req.body.mobileNumber.length === 0
+                    ? user.mobileNumber
+                    : req.body.mobileNumber,
+                username:
+                  req.body.username.length === 0
+                    ? user.username
+                    : req.body.username,
+              },
+            },
+            { new: true },
+            (err, result) => {
+              if (err) {
+                res.status(400).json({ Error: err });
+              } else {
+                return res.status(200).json({ UpdatedInfo: result });
+              }
+            }
+          );
+        } else {
+          Driver.findOne({ username: req.body.username }, (err, foundUser) => {
             if (err) {
-              console.log(err);
-              console.log("dfadsfdsafasdf");
+              res.status(400).json({ Error: err });
             } else {
-              if (foundUser == null) {
-                User.findOneAndUpdate(
-                  { _id: uniqueId },
+              if (foundUser === null) {
+                Driver.findOneAndUpdate(
+                  { _id: req.params.id },
+                  // {
+                  //   $set: {
+                  //     fullName:
+                  //       req.body.fullName.length === 0
+                  //         ? user.fullName
+                  //         : req.body.fullName,
+                  //     mobileNumber:
+                  //       req.body.mobileNumber.length === 0
+                  //         ? user.mobileNumber
+                  //         : req.body.mobileNumber,
+                  //     username:
+                  //       req.body.username.length === 0
+                  //         ? user.username
+                  //         : req.body.username,
+                  //     userPicture: picture.url,
+                  //   },
+                  // },
                   {
                     $set: {
                       fullName:
@@ -95,71 +186,29 @@ router.post("/profiles/user-information", isAuth, function (req, res) {
                         req.body.username.length === 0
                           ? user.username
                           : req.body.username,
-                      userPicture: picture.url,
                     },
                   },
                   { new: true },
                   (err, result) => {
                     if (err) {
-                      console.log(err);
+                      res.status(400).json({ Error: err });
                     } else {
-                      console.log(result);
-                      // console.log("successfully because email match");
-                      return res.send("User address info updated ");
+                      return res.status(200).json({ UpdatedInfo: result });
                     }
                   }
                 );
               } else {
-                res.send("username already in use");
+                res.send("This username already in use");
               }
             }
           });
-        });
+        }
       } catch (e) {
-
-        User.findOne({ username: req.body.username }, (err, foundUser) => {
-          if (err) {
-            console.log(err);
-          } else {
-            if (foundUser == null) {
-              User.findOneAndUpdate(
-                { _id: uniqueId },
-                {
-                  $set: {
-                    fullName:
-                      req.body.fullName.length === 0
-                        ? user.fullName
-                        : req.body.fullName,
-                    mobileNumber:
-                      req.body.mobileNumber.length === 0
-                        ? user.mobileNumber
-                        : req.body.mobileNumber,
-                    username:
-                      req.body.username.length === 0
-                        ? user.username
-                        : req.body.username,
-                  },
-                },
-                { new: true },
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    console.log(result);
-                    // console.log("successfully because email match");
-                    return res.send("User address info updated ");
-                  }
-                }
-              );
-            } else {
-              res.send("username already in use");
-            }
-          }
-        });
+        res.status(400).json({ Error: e });
       }
     }
     if (err) {
-      console.log(err);
+      res.status(400).json({ Error: err });
     }
   });
 });

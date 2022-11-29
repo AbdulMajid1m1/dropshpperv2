@@ -342,23 +342,8 @@ app.post("/login", function (req, res) {
       console.log(err);
     } else {
       passport.authenticate("local")(req, res, function () {
-        // res.redirect("/catogeries");
-        // app.set("myvar", user._id);
         console.log(req.user._id);
-        // User.findOne({ _id: req.user._id }, function (err, user) {
-        //   if (!err) {
-        //     if (user.userType === "driver") {
-        //       console.log("send drivers home page");
-        //     } else if (user.userType === "customer") {
-        //       console.log("send customers home page");
-        //     } else {
-        //       console.log("send categories home page");
-        //     }
-        //   }
-        // });
         req.session.isAuth = true;
-        // res.send("<h1>You are LogedIn!</h1>");
-        // res.redirect("/checkk");
         res.status(200).json({
           userData: req.user,
           success: true,
