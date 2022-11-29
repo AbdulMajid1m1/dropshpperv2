@@ -248,7 +248,7 @@ app.get("/logout", function (req, res, next) {
   });
 });
 // Register Route
-app.post("/register", function (req, res) {
+app.post("/driver-register", function (req, res) {
   // try {
   //   const userPicture = req.files.userPicture;
   //   cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
