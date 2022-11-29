@@ -116,7 +116,7 @@ router.post("/update/driver-profile/:id", function (req, res) {
                   }
                 );
               } else {
-                res.send("This username already in use");
+                res.send({ message: "This username already in use" });
               }
             }
           });
