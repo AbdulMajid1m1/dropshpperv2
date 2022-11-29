@@ -215,15 +215,13 @@ router.post("/update/driver-profile/:id", function (req, res) {
 
 // Address update form
 
-router.post("/profiles/address", isAuth, function (req, res) {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  User.findOne({ _id: uniqueId }, (err, user) => {
+router.post("/update/driver-address/:id", function (req, res) {
+  Driver.findOne({ _id: req.params.id }, (err, user) => {
     if (err) {
       return res.json(err);
     } else {
-      User.findOneAndUpdate(
-        { _id: uniqueId },
+      Driver.findOneAndUpdate(
+        { _id: req.params.id },
         {
           $set: {
             country:
@@ -240,11 +238,9 @@ router.post("/profiles/address", isAuth, function (req, res) {
         { new: true },
         (err, result) => {
           if (err) {
-            console.log(err);
+            res.status(400).json({ Error: err });
           } else {
-            console.log(result);
-            // console.log("successfully because email match");
-            return res.send("User address info updated ");
+            res.status(200).json({ UpdatedData: result });
           }
         }
       );
