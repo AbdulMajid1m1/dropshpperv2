@@ -16,22 +16,13 @@ const userSchema = new mongoose.Schema(
     password: String,
     // googleId: String,
     // facebookId: String,
+    userPicture: { type: String, default: "" },
     country: { type: String, default: "" },
     region: { type: String, default: "" },
     city: { type: String, default: "" },
     streetAddress: { type: String, default: "" },
-    NameOnLicense: { type: String, required: [true, "Name is required"] },
-    registrationNo: String,
-    make: Number,
-    year: Number,
-    licenseNumber: {
-      type: Number,
-      required: [true, "License Number is required"],
-    },
-    DrivingFor: Number,
-    Model:Number,
   },
-  
+
   { timestamps: true }
 );
 

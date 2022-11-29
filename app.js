@@ -112,6 +112,16 @@ passport.deserializeUser(function (id, done) {
     done(err, user);
   });
 });
+passport.use(User.createStrategy());
+passport.serializeUser(function (user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function (id, done) {
+  User.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
 
 //Google auth
 passport.use(
@@ -247,45 +257,83 @@ app.get("/logout", function (req, res, next) {
     //Redirect to home page
   });
 });
-// Register Route
-app.post("/driver-register", function (req, res) {
-  // try {
-  //   const userPicture = req.files.userPicture;
-  //   cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
-  //     if (!err) {
-  //       User.register(
-  //         {
-  //           username: req.body.username,
-  //           fullName: req.body.fullName,
-  //           mobileNumber: req.body.mobileNumber,
-  //           userPicture: picture.url,
-  //         },
-  //         req.body.password,
-  //         function (err, user) {
-  //           if (err) {
-  //             res.status(400).json({ error: err });
-  //           } else {
-  //             passport.authenticate("local")(req, res, function () {
-  //               user.save();
-  //               console.log(user._id);
-
-  //               // res.redirect("/catogeries");
-  //               // res.json(user);
-  //               req.session.isAuth = true;
-  //               res.status(200).json({
-  //                 success: true,
-  //                 Token: req.session.id,
-  //                 uuid: req.user._id,
-  //               });
-  //             });
-  //           }
-  //         }
-  //       );
-  //     } else {
+// User Register Route Start /////////////
+app.post("/customer-register", function (req, res) {
+  // User.register(
+  //   {
+  //     username: req.body.username,
+  //     fullName: req.body.fullName,
+  //     mobileNumber: req.body.mobileNumber,
+  //     country: req.body.country,
+  //     region: req.body.region,
+  //     city: req.body.city,
+  //     streetAddress: req.body.streetAddress,
+  //   },
+  //   req.body.password,
+  //   function (err, user) {
+  //     if (err) {
   //       res.status(400).json({ error: err });
+  //     } else {
+  //       passport.authenticate("local")(req, res, function () {
+  //         user.save();
+  //         req.session.isAuth = true;
+  //         res.status(200).json({
+  //           CustomerData: req.user,
+  //           success: true,
+  //           Token: req.session.id,
+  //           uuid: req.user._id,
+  //         });
+  //         console.log("You are Registered!");
+  //       });
   //     }
-  //   });
-  // } catch (err) {
+  //   }
+  // );
+
+  try {
+    const userPicture = req.files.userPicture;
+    cloudinary.uploader.upload(userPicture.tempFilePath, (err, picture) => {
+      if (!err) {
+        User.register(
+          {
+            username: req.body.username,
+            fullName: req.body.fullName,
+            mobileNumber: req.body.mobileNumber,
+            country: req.body.country,
+            region: req.body.region,
+            city: req.body.city,
+            streetAddress: req.body.streetAddress,
+            userPicture: picture.url,
+          },
+          req.body.password,
+          function (err, user) {
+            if (err) {
+              res.status(400).json({ error: err });
+            } else {
+              passport.authenticate("local")(req, res, function () {
+                user.save();
+                req.session.isAuth = true;
+                res.status(200).json({
+                  customerData: user,
+                  success: true,
+                  Token: req.session.id,
+                  uuid: req.user._id,
+                });
+              });
+            }
+          }
+        );
+      } else {
+        res.status(400).json({ error: err });
+      }
+    });
+  } catch (err) {
+    res.status(400).json({ error: err });
+  }
+});
+
+// User Register Route End ///////////
+// Driver Register Route
+app.post("/driver-register", function (req, res) {
   try {
     Driver.register(
       {
@@ -311,10 +359,7 @@ app.post("/driver-register", function (req, res) {
         } else {
           passport.authenticate("local")(req, res, function () {
             user.save();
-            console.log(user._id);
 
-            // res.redirect("/catogeries");
-            // res.json(user); ok
             req.session.isAuth = true;
             res.status(200).json({
               userData: req.user,

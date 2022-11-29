@@ -65,7 +65,6 @@ router.post("/register/address-info", isAuth, function (req, res) {
 
 // updating address info
 
-
 router.post("/upload-img", function (req, res) {
   try {
     const userPicture = req.files.userPicture;
@@ -73,14 +72,12 @@ router.post("/upload-img", function (req, res) {
       if (!err) {
         res.status(200).json({ PictureUrl: picture.url });
       } else {
-        res.status(400).json({ error: err });
+        res.status(400).json({ error: err, message: "else eroor" });
       }
     });
   } catch (error) {
-    res.status(400).json({ Error: error });
+    res.status(400).json({ Error: error, message: "try catch error" });
   }
 });
-
-
 
 module.exports = router;
