@@ -17,10 +17,15 @@ const messageRoute = require("./routes/messages");
 const session = require("express-session");
 var MongoDBStore = require("connect-mongodb-session")(session);
 const passport = require("passport");
+// const passportCustomer = require("passport");
+const { Passport } = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const findOrCreate = require("mongoose-findorcreate");
 const { Connection } = require("mongoose");
+
+const passportCustomer = new Passport();
+// const passportDriver = new Passport();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 //middleware
 const isAuth = require("./middleware/auth");
@@ -71,6 +76,7 @@ app.use(
   })
 );
 app.use(passport.initialize());
+app.use(passportCustomer.initialize());
 
 // app.use(
 //   cookieSession({
@@ -82,6 +88,7 @@ app.use(passport.initialize());
 // );
 
 app.use(passport.session());
+app.use(passportCustomer.session());
 
 //
 app.use(express.static("public"));
@@ -102,6 +109,18 @@ store.on("error", function (error) {
 });
 
 // mongoose.set("useCreateIndex", true);
+
+passportCustomer.use(User.createStrategy());
+passportCustomer.serializeUser(function (user, done) {
+  done(null, user.id);
+});
+
+passportCustomer.deserializeUser(function (id, done) {
+  User.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
+
 passport.use(Driver.createStrategy());
 passport.serializeUser(function (user, done) {
   done(null, user.id);
@@ -112,17 +131,6 @@ passport.deserializeUser(function (id, done) {
     done(err, user);
   });
 });
-passport.use(User.createStrategy());
-passport.serializeUser(function (user, done) {
-  done(null, user.id);
-});
-
-passport.deserializeUser(function (id, done) {
-  User.findById(id, function (err, user) {
-    done(err, user);
-  });
-});
-
 //Google auth
 passport.use(
   new GoogleStrategy(
@@ -300,7 +308,7 @@ app.get("/logout", function (req, res, next) {
 
 // User Register Route End ///////////
 
-app.post("/cutomer-register", function (req, res) {
+app.post("/customer-register", function (req, res) {
   try {
     User.register(
       {
@@ -317,7 +325,7 @@ app.post("/cutomer-register", function (req, res) {
         if (err) {
           res.status(400).json({ error: err });
         } else {
-          passport.authenticate("local")(req, res, function () {
+          passportCustomer.authenticate("local")(req, res, function () {
             user.save();
 
             req.session.isAuth = true;
@@ -417,8 +425,7 @@ app.post("/customer-login", function (req, res) {
     if (err) {
       res.status(400).json({ error: err });
     } else {
-      passport.authenticate("local")(req, res, function () {
-        console.log(req.user._id);
+      passportCustomer.authenticate("local")(req, res, function () {
         req.session.isAuth = true;
         res.status(200).json({
           userData: req.user,
