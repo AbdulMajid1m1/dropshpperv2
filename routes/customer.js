@@ -342,12 +342,7 @@ router.post("/customers/receiver-review/:_id", function (req, res) {
 });
 
 router.post("/customers/post-parcel/:id", function (req, res) {
-  // let userId = req.flash("userId");
-  // let uniqueId =
-  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
   var userId = req.params.id;
-  // console.log("hurraa!!!!");
-  // console.log(config);
   const newOrder = CustomerOrder({
     senderName: req.body.senderName,
     receiverName: req.body.receiverName,
@@ -362,16 +357,20 @@ router.post("/customers/post-parcel/:id", function (req, res) {
   });
   req.app.set("newOrderId", newOrder._id);
   req.app.set("senderName", newOrder.senderName);
-  newOrder.save().then((order) => {
-    if (order) {
-      req.app.locals.ParcelPrice = order.offer;
-      req.app.locals.ParcelId = order._id;
-      res.status(200).json({ parcel: order, parcelId: order._id });
-      
-    } else {
-      console.log("cannot post order");
-    }
-  });
+  newOrder
+    .save()
+    .then((order) => {
+      if (order) {
+        req.app.locals.ParcelPrice = order.offer;
+        req.app.locals.ParcelId = order._id;
+        res.status(200).json({ parcel: order, parcelId: order._id });
+      } else {
+        console.log("cannot post order");
+      }
+    })
+    .catch((err) => {
+      res.status(400).json({ error: err });
+    });
 });
 //DELETE PARCEL
 router.delete("/customers/:_id", isAuth, async (req, res) => {
