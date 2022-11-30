@@ -131,17 +131,19 @@ passport.deserializeUser(function (id, done) {
     done(err, user);
   });
 });
-//Google auth
-passport.use(
+//Google auth for Driver
+passportCustomer.use(
   new GoogleStrategy(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/catogeries",
+
+      // REPLACE IT WITH PRODUCTION BASE URL
+      callbackURL: "http://localhost:3000/auth/google/customer-catogery",
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {
-      console.log(profile);
+      // console.log(profile);
       User.findOrCreate(
         {
           username: profile.emails[0].value,
@@ -156,13 +158,75 @@ passport.use(
     }
   )
 );
-// facebook auth
+
+//Google auth for Customer
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      // REPLACE IT WITH PRODUCTION BASE URL
+      callbackURL: "http://localhost:3000/auth/google/driver-catogery",
+      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+    },
+    function (accessToken, refreshToken, profile, cb) {
+      // console.log(profile);
+      Driver.findOrCreate(
+        {
+          username: profile.emails[0].value,
+          fullName: profile.displayName,
+          googleId: profile.id,
+        },
+        function (err, user) {
+          // app.set("userid", user._id);
+          return cb(err, user);
+        }
+      );
+    }
+  )
+);
+// facebook auth for driver
 passport.use(
   new FacebookStrategy(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "http://localhost:3000/auth/facebook/catogeries",
+      // REPLACE IT WITH PRODUCTION BASE URL
+      callbackURL: "http://localhost:3000/auth/facebook/driver-category",
+      profileFields: [
+        "email",
+        "id",
+        "first_name",
+        "gender",
+        "last_name",
+        "picture",
+      ],
+    },
+    function (accessToken, refreshToken, profile, cb) {
+      console.log(profile);
+      Driver.findOrCreate(
+        {
+          username:
+            profile.username !== undefined ? profile.username : profile.id,
+          fullName: profile.name.givenName + " " + profile.name.familyName,
+          facebookId: profile.id,
+        },
+        function (err, user) {
+          app.set("myvar", user._id);
+          return cb(err, user);
+        }
+      );
+    }
+  )
+);
+// facebook auth
+passportCustomer.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      // REPLACE IT WITH PRODUCTION BASE URL
+      callbackURL: "http://localhost:3000/auth/facebook/customer-category",
       profileFields: [
         "email",
         "id",
@@ -204,37 +268,73 @@ app.get("/login-register-page", function (req, res) {
 
 // Google auth
 app.get(
-  "/auth/google",
+  "/driver/auth/google",
+  passportCustomer.authenticate("google", { scope: ["profile", "email"] })
+);
+app.get(
+  "/customer/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 app.get(
-  "/auth/google/catogeries",
-  passport.authenticate("google", { failureRedirect: "/login" }),
+  "/auth/google/driver-catogery",
+  passport.authenticate("google", {
+    failureRedirect: "/google-auth-failure",
+  }),
   function (req, res) {
-    // Successful authentication, redirect to Category Section.
-    // res.redirect("/categories");
-    res.send(req.user);
-    // req.app.locals
+    res.status(200).json({ success: true, userData: req.user });
     req.app.locals.userId = req.user;
-    // res.send("Select category: Driver or Customer");
   }
 );
+app.get(
+  "/auth/google/customer-catogery",
+  passportCustomer.authenticate("google", {
+    failureRedirect: "/google-auth-failure",
+  }),
+  function (req, res) {
+    res.status(200).json({ success: true, userData: req.user });
+    req.app.locals.userId = req.user;
+  }
+);
+app.get("google-auth-failure", (req, res) => {
+  res.status(400).json({ error: "Something went wrong" });
+});
 
 //Facebook authentication
 
-app.get("/auth/facebook", passport.authenticate("facebook"));
+app.get("/driver/auth/facebook", passport.authenticate("facebook"));
+app.get("/customer/auth/facebook", passportCustomer.authenticate("facebook"));
 
 app.get(
-  "/auth/facebook/catogeries",
-  passport.authenticate("facebook", { failureRedirect: "/login" }),
+  "/auth/facebook/driver-category",
+  passport.authenticate("facebook", {
+    failureRedirect: "/facebook-auth-failure",
+  }),
   function (req, res) {
     // Successful authentication, redirect home.
     // res.redirect('/catogeries');
-    res.send(req.user);
+    // res.send(req.user);
+    res.status(200).json({ success: true, userData: req.user });
     req.app.locals.userId = req.user;
     // res.send("<h1>Select category: Driver or Customer</h1>");
   }
 );
+app.get(
+  "/auth/facebook/customer-category",
+  passportCustomer.authenticate("facebook", {
+    failureRedirect: "/facebook-auth-failure",
+  }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    // res.redirect('/catogeries');
+    // res.send(req.user);
+    res.status(200).json({ success: true, userData: req.user });
+    req.app.locals.userId = req.user;
+    // res.send("<h1>Select category: Driver or Customer</h1>");
+  }
+);
+app.get("facebook-auth-failure", (req, res) => {
+  res.status(400).json({ error: "Something went wrong" });
+});
 
 app.get("/login", function (req, res) {
   // res.send("Login page");

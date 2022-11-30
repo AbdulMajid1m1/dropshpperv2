@@ -7,7 +7,11 @@ const isAuth = require("../middleware/auth");
 //Selecting Customer Category. and showing Customer posted orders both pending and underway
 
 router.get("/customers", isAuth, function (req, res) {
-  res.send("Customer Home Page");
+  // res.send("Customer Home Page");
+
+  // ********************************** alert ***************************************************************
+  // ********************************** alert ***************************************************************
+  // ********************************** alert ***************************************************************
   CustomerOrder.deleteMany({ paymentStatus: false }, (req, res) => {
     console.log("delted parcels with payment status false");
   });
@@ -301,7 +305,7 @@ router.post("/update/customer-address/:id", function (req, res) {
 // ************* Updated Routes *************
 
 //Receiver Review........
-router.post("/customers/receiver-review/:_id", isAuth, function (req, res) {
+router.post("/customers/receiver-review/:_id", function (req, res) {
   let uniqueId =
     req.user == undefined ? req.app.locals.userId._id : req.user._id;
   //q1 start
@@ -337,14 +341,13 @@ router.post("/customers/receiver-review/:_id", isAuth, function (req, res) {
   }); //q1 end
 });
 
-router.post("/customers/orders", isAuth, function (req, res) {
+router.post("/customers/post-parcel/:id", function (req, res) {
   // let userId = req.flash("userId");
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  var userId = uniqueId;
+  // let uniqueId =
+  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+  var userId = req.params.id;
   // console.log("hurraa!!!!");
   // console.log(config);
-
   const newOrder = CustomerOrder({
     senderName: req.body.senderName,
     receiverName: req.body.receiverName,
@@ -361,33 +364,10 @@ router.post("/customers/orders", isAuth, function (req, res) {
   req.app.set("senderName", newOrder.senderName);
   newOrder.save().then((order) => {
     if (order) {
-      User.findOneAndUpdate(
-        { _id: uniqueId },
-        {
-          $set: {
-            userType: "customer",
-          },
-        },
-        { new: true },
-        (err, result) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // console.log(result);
-            // console.log("successfully because email match");
-            // return res.send("");
-            console.log("userType set to customer");
-          }
-        }
-      );
-      // console.log(order);
-      // res.status(200).json(order);
       req.app.locals.ParcelPrice = order.offer;
       req.app.locals.ParcelId = order._id;
-      // res.redirect("/create-payment-intent");
       res.status(200).json({ parcel: order, parcelId: order._id });
-
-      // res.json(err);
+      
     } else {
       console.log("cannot post order");
     }
