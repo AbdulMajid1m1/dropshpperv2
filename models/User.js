@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
     password: String,
     // googleId: String,
     // facebookId: String,
-    userPicture: { type: String, default: "" },
+    // userPicture: { type: String, default: "" },
     country: { type: String, default: "" },
     region: { type: String, default: "" },
     city: { type: String, default: "" },
