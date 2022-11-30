@@ -158,7 +158,7 @@ router.post("/update/driver-address/:id", function (req, res) {
           if (err) {
             res.status(400).json({ Error: err });
           } else {
-            res.status(200).json({ UpdatedData: result });
+            res.status(200).json({ DriverData: result });
           }
         }
       );
