@@ -302,7 +302,7 @@ app.post("/customer-register", function (req, res) {
             region: req.body.region,
             city: req.body.city,
             streetAddress: req.body.streetAddress,
-            userPicture: picture.url,
+            // userPicture: picture.url,
           },
           req.body.password,
           function (err, user) {
