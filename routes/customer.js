@@ -4,28 +4,29 @@ const Driver = require("../models/Driver");
 const CustomerOrder = require("../models/CustomerOrder");
 const Conversation = require("../models/Conversation");
 const isAuth = require("../middleware/auth");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 //Selecting Customer Category. and showing Customer posted orders both pending and underway
 
-router.get("/customers", isAuth, function (req, res) {
-  // res.send("Customer Home Page");
-
-  // ********************************** alert ***************************************************************
-  // ********************************** alert ***************************************************************
-  // ********************************** alert ***************************************************************
-  CustomerOrder.deleteMany({ paymentStatus: false }, (req, res) => {
-    console.log("delted parcels with payment status false");
-  });
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-
+router.get("/home/customers/:id", function (req, res) {
+  // CustomerOrder.deleteMany({ paymentStatus: false }, (req, res) => {
+  //   console.log("delted parcels with payment status false");
+  // });
+  CustomerOrder.deleteMany({ paymentStatus: false })
+    .then(function () {
+      console.log("delted parcels with payment status false"); // Success
+    })
+    .catch(function (error) {
+      console.log(error); // Failure
+    });
   CustomerOrder.find(
-    { $and: [{ user: uniqueId }, { parcelStatus: { $ne: "completed" } }] },
+    { $and: [{ user: req.params.id }, { parcelStatus: { $ne: "completed" } }] },
     (err, foundOrders) => {
       if (!err) {
-        console.log("paracels placed by customer");
-        console.log(foundOrders);
+        // console.log("paracels placed by customer");
+        // console.log(foundOrders);
+        res.status(200).json({ AllParcels: foundOrders });
       } else {
-        console.log(err);
+        res.status(500).json({ error: err });
       }
     }
   );
@@ -33,18 +34,14 @@ router.get("/customers", isAuth, function (req, res) {
 
 //Selecting only those customer parcels which are underway
 
-router.get("/customers/parcels-underway", isAuth, function (req, res) {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  res.send("Customer Home Page");
+router.get("/home/customers/parcels-underway/:id", function (req, res) {
   CustomerOrder.find(
-    { $and: [{ user: uniqueId }, { parcelStatus: "underway" }] },
+    { $and: [{ user: req.params.id }, { parcelStatus: "underway" }] },
     (err, foundOrders) => {
       if (!err) {
-        console.log("Underway parcels of the customer");
-        console.log(foundOrders);
+        res.status(200).json({ AllParcels: foundOrders });
       } else {
-        console.log(err);
+        res.status(500).json({ error: err });
       }
     }
   );
@@ -53,13 +50,9 @@ router.get("/customers/parcels-underway", isAuth, function (req, res) {
 //Selecting only those customer parcels which are underway
 
 router.get(
-  "/customers/receiving-parcels/parcels-underway",
-  isAuth,
+  "/home/customers/receiving-parcels/parcels-underway/:id",
   function (req, res) {
-    let uniqueId =
-      req.user == undefined ? req.app.locals.userId._id : req.user._id;
-    // res.send("Customer Home Page");
-    User.findOne({ _id: uniqueId }, function (err, user) {
+    User.findOne({ _id: req.params.id }, function (err, user) {
       CustomerOrder.find(
         {
           $and: [
@@ -70,9 +63,9 @@ router.get(
         (err, foundOrders) => {
           if (!err) {
             // console.log("Underway parcels of the customer");
-            res.status(200).json(foundOrders);
+            res.status(200).json({ AllParcels: foundOrders });
           } else {
-            console.log(err);
+            res.status(500).json({ error: err });
           }
         }
       );
@@ -81,23 +74,19 @@ router.get(
 );
 
 // Receiver Review page...........
-router.get("/customers/receiver-review/:_id", isAuth, function (req, res) {
+router.get("/customers/receiver-review/:_id", function (req, res) {
   res.status(200).json("send driver review page");
 });
 
 //Selecting only those customer parcels which are completed
-router.get("/customers/parcels-completed", isAuth, function (req, res) {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  res.send("Customer Home Page with completd parcels");
+router.get("/home/customers/parcels-completed/:id", function (req, res) {
   CustomerOrder.find(
-    { $and: [{ user: uniqueId }, { parcelStatus: "completed" }] },
+    { $and: [{ user: req.params.id }, { parcelStatus: "completed" }] },
     (err, foundOrders) => {
       if (!err) {
-        console.log("Completed parcels of the customer");
-        console.log(foundOrders);
+        res.status(200).json({ AllParcels: foundOrders });
       } else {
-        console.log(err);
+        res.status(500).json({ error: err });
       }
     }
   );
@@ -106,13 +95,10 @@ router.get("/customers/parcels-completed", isAuth, function (req, res) {
 //Selecting only those customer parcels which are completed
 
 router.get(
-  "/customers/receiving-parcels/parcels-completed",
-  isAuth,
+  "/home/customers/receiving-parcels/parcels-completed/:id",
+
   function (req, res) {
-    let uniqueId =
-      req.user == undefined ? req.app.locals.userId._id : req.user._id;
-    // res.send("Customer Home Page");
-    User.findOne({ _id: uniqueId }, function (err, user) {
+    User.findOne({ _id: req.params.id }, function (err, user) {
       CustomerOrder.find(
         {
           $and: [
@@ -124,9 +110,9 @@ router.get(
           if (!err) {
             console.log("Underway parcels of the customer");
             // console.log(foundOrders);
-            res.status(200).json(foundOrders);
+            res.status(200).json({ AllParcels: foundOrders });
           } else {
-            console.log(err);
+            res.status(500).json({ error: err });
           }
         }
       );
@@ -134,18 +120,8 @@ router.get(
   }
 );
 
-// Customer Order placing page
-
-router.get("/customers/orders", isAuth, function (req, res) {
-  res.send("Send Order details form");
-});
-
 // ************* Updated Routes *************
-
 router.post("/update/customer-profile/:id", function (req, res) {
-  // let uniqueId =
-  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
-
   User.findOne({ _id: req.params.id }, function (err, user) {
     if (!err) {
       try {
@@ -363,7 +339,11 @@ router.post("/customers/post-parcel/:id", function (req, res) {
       if (order) {
         req.app.locals.ParcelPrice = order.offer;
         req.app.locals.ParcelId = order._id;
-        res.status(200).json({ parcel: order, parcelId: order._id });
+        // res.status(200).json({ parcel: order, parcelId: order._id });
+        req.session.order1 = order;
+        res.redirect("/successs");
+
+        console.log(order);
       } else {
         console.log("cannot post order");
       }
@@ -372,8 +352,11 @@ router.post("/customers/post-parcel/:id", function (req, res) {
       res.status(400).json({ error: err });
     });
 });
+router.get("/successs", async (req, res) => {
+  res.send(req.session.order1);
+});
 //DELETE PARCEL
-router.delete("/customers/:_id", isAuth, async (req, res) => {
+router.delete("/customers/:_id", async (req, res) => {
   try {
     await CustomerOrder.findByIdAndDelete(req.params._id);
     res.status(200).json("Parcel has been deleted...");
@@ -381,5 +364,126 @@ router.delete("/customers/:_id", isAuth, async (req, res) => {
     res.status(500).json(err);
   }
 });
+
+/////////////// --------------  PAYMENT ---------- //////////////
+// router.post("/payment/:id", async (req, res) => {
+//   var userId = req.params.id;
+//   const newOrder = CustomerOrder({
+//     senderName: req.body.senderName,
+//     receiverName: req.body.receiverName,
+//     receiverEmail: req.body.receiverEmail,
+//     pickupAddress: req.body.pickupAddress,
+//     destinationAddress: req.body.destinationAddress,
+//     size: req.body.size,
+//     offer: req.body.offer,
+//     message: req.body.message,
+//     sendingLocation: req.body.sendingLocation,
+//     user: userId,
+//   });
+//   req.app.set("newOrderId", newOrder._id);
+//   req.app.set("senderName", newOrder.senderName);
+//   newOrder
+//     .save()
+//     .then(async (order) => {
+//       if (order) {
+//         req.app.locals.ParcelPrice = order.offer;
+//         req.app.locals.ParcelId = order._id;
+//         // res.status(200).json({ parcel: order, parcelId: order._id });
+
+//         console.log({ parcelData: order });
+//       } else {
+//         console.log("cannot post order");
+//       }
+//     })
+//     .catch((err) => {
+//       res.status(400).json({ error: err });
+//     });
+
+//   //   const { product } = req.body;
+//   //   const { product } = req.body;
+// });
+
+router.post("/payment/:id", async (req, res) => {
+  //   const { product } = req.body;
+  //   const { product } = req.body;
+  var userId = req.params.id;
+  const newOrder = CustomerOrder({
+    senderName: req.body.senderName,
+    receiverName: req.body.receiverName,
+    receiverEmail: req.body.receiverEmail,
+    pickupAddress: req.body.pickupAddress,
+    destinationAddress: req.body.destinationAddress,
+    size: req.body.size,
+    offer: req.body.offer,
+    message: req.body.message,
+    sendingLocation: req.body.sendingLocation,
+    user: userId,
+  });
+  req.app.set("newOrderId", newOrder._id);
+  req.app.set("senderName", newOrder.senderName);
+  newOrder
+    .save()
+    .then(async (order) => {
+      if (order) {
+        req.app.locals.ParcelPrice = order.offer;
+        req.app.locals.ParcelId = order._id;
+        // res.status(200).json({ parcel: order, parcelId: order._id });
+        console.log(order);
+        req.app.locals.parcelData = order;
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: req.body.name,
+                  // images: [product.image],
+                },
+                //   unit_amount: product.amount * 100,
+                unit_amount: req.body.amount * 100,
+              },
+              // quantity: product.quantity,
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+          success_url: "http://localhost:3000/payment-success",
+          cancel_url: "http://localhost:3000/payment-fail",
+        });
+
+        res.json({ id: session.id });
+      } else {
+        console.log("cannot post order");
+      }
+    })
+    .catch((err) => {
+      res.status(400).json({ error: err });
+    });
+});
+
+router.get("/payment-success", async (req, res) => {
+  CustomerOrder.findOneAndUpdate(
+    { _id: req.app.locals.parcelData._id },
+    {
+      $set: {
+        paymentStatus: true,
+      },
+    },
+    { new: true },
+    (err, result) => {
+      if (err) {
+        res.status(400).json({ Error: err });
+      } else {
+        return res.status(200).json({ parcelData: result });
+      }
+    }
+  );
+});
+router.get("/payment-payment-fail", async (req, res) => {
+  res.json({ err: "try again" });
+});
+/////////////// --------------  PAYMENT ---------- //////////////
 
 module.exports = router;

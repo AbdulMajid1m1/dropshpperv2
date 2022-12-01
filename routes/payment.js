@@ -8,10 +8,10 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const isAuth = require("../middleware/auth");
 
 // Receving Payment using payment intent
-router.get("/create-payment-intent", isAuth, async (req, res) => {
+router.get("/create-payment-intent", async (req, res) => {
   res.send("send page having stipe form here");
 });
-router.post("/create-payment-intent", isAuth, async (req, res) => {
+router.post("/create-payment-intent", async (req, res) => {
   const { items } = req.body;
   const paymentIntent = await stripe.paymentIntents.create({
     // amount: calculateOrderAmount(items),

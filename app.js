@@ -541,7 +541,8 @@ app.post("/customer-login", function (req, res) {
 ///////////////////////////// ****Only for testing**** ///////////////////////////////////////////////////////////
 
 app.get("/pay", (req, res) => {
-  res.sendFile(__dirname + "/public/checkout.html");
+  res.sendFile(__dirname + "/public/Stripe.html");
+  // res.sendFile(__dirname + "/index.html");
 });
 app.get("/log", (req, res) => {
   res.sendFile(__dirname + "/loggedin.html");
@@ -551,7 +552,7 @@ app.get("/log", (req, res) => {
 // });
 
 ////////////////////////////////// UPDATES STARTS //////////////////////////////////
-app.get("/:id", isAuth, (req, res) => {
+app.get("/:id", (req, res) => {
   User.findOne({ _id: req.params.id }, async function (err, user) {
     if (!err) {
       res.status(200).json({ userData: user });
@@ -563,6 +564,11 @@ app.get("/:id", isAuth, (req, res) => {
 
   // res.status(200).json({ LoggedInUserData: req.user, Token: req.session.id });
 });
+
+app.get("/stripe", (req, res) => {
+  res.sendFile(__dirname + "/public/Stripe.html");
+});
+
 
 ////////////////////////////////// UPDATES END //////////////////////////////////
 
