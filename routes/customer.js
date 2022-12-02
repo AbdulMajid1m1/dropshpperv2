@@ -32,6 +32,19 @@ router.get("/home/customers/:id", function (req, res) {
   );
 });
 
+/////  GET Customer DATA START /////////////
+router.get("/get-driver-data/:id", function (req, res) {
+  User.findOne({ _id: req.params.id }, function (err, user) {
+    if (!err) {
+      res.status(200).json({ CustomerData: user, uuid: user._id });
+    }
+    if (err) {
+      res.status(400).json({ Error: err });
+    }
+  });
+});
+/////  GET Customer DATA END /////////////
+
 //Selecting only those customer parcels which are underway
 
 router.get("/home/customers/parcels-underway/:id", function (req, res) {
