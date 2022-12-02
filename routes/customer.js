@@ -33,7 +33,7 @@ router.get("/home/customers/:id", function (req, res) {
 });
 
 /////  GET Customer DATA START /////////////
-router.get("/get-driver-data/:id", function (req, res) {
+router.get("/get-customer-data/:id", function (req, res) {
   User.findOne({ _id: req.params.id }, function (err, user) {
     if (!err) {
       res.status(200).json({ CustomerData: user, uuid: user._id });
