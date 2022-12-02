@@ -94,6 +94,19 @@ const driverSchema = new mongoose.Schema(
     },
     DrivingFor: String,
     Model: String,
+    parcelsUnderway: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
+    ],
+    parcelsCompleted: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
+    ],
+    reviews: [
+      {
+        reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
+        rating: Number,
+        review: String,
+      },
+    ],
   },
 
   { timestamps: true }

@@ -41,7 +41,7 @@ router.post("/create-payment-intent", async (req, res) => {
   });
 });
 
-router.get("/api/stripe/account", isAuth, async (req, res) => {
+router.get("/api/stripe/account", async (req, res) => {
   const account = await stripe.accounts.create({
     type: "express",
   });
@@ -56,7 +56,7 @@ router.get("/api/stripe/account", isAuth, async (req, res) => {
 });
 
 // Sending Payment to dirver
-router.post("/driver/receive-payment/:_id", isAuth, async (req, res) => {
+router.post("/driver/receive-payment/:_id", async (req, res) => {
   let uniqueId =
     req.user == undefined ? req.app.locals.userId._id : req.user._id;
   CustomerOrder.findOne({ _id: req.params._id }, async (err, parcel) => {
