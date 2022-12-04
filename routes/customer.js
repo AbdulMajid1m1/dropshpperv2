@@ -35,11 +35,10 @@ router.get("/home/customers/:id", function (req, res) {
 /////  GET Customer DATA START /////////////
 router.get("/get-customer-data/:id", function (req, res) {
   User.findOne({ _id: req.params.id }, function (err, user) {
-    if (!err) {
-      res.status(200).json({ CustomerData: user, uuid: user._id });
-    }
     if (err) {
-      res.status(400).json({ Error: err });
+      res.status(400).json({ error: err });
+    } else {
+      res.status(200).json({ CustomerData: user });
     }
   });
 });
@@ -455,7 +454,7 @@ router.post("/payment/:id", async (req, res) => {
                   // images: [product.image],
                 },
                 //   unit_amount: product.amount * 100,
-                unit_amount: req.body.amount * 100,
+                unit_amount: req.body.offer * 100,
               },
               // quantity: product.quantity,
               quantity: 1,
@@ -487,7 +486,7 @@ router.get("/payment-success", async (req, res) => {
     { new: true },
     (err, result) => {
       if (err) {
-        res.status(400).json({ Error: err });
+        res.status(400).json({ error: err });
       } else {
         return res.status(200).json({ parcelData: result });
       }
@@ -495,7 +494,7 @@ router.get("/payment-success", async (req, res) => {
   );
 });
 router.get("/payment-payment-fail", async (req, res) => {
-  res.json({ err: "try again" });
+  res.json({ error: "try again" });
 });
 /////////////// --------------  PAYMENT ---------- //////////////
 

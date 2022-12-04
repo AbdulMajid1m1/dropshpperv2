@@ -6,7 +6,7 @@ const Conversation = require("../models/Conversation");
 const Notification = require("../models/Notification");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const isAuth = require("../middleware/auth");
-
+const BaseUrl = "http://localhost:3000";
 // Receving Payment using payment intent
 router.get("/create-payment-intent", async (req, res) => {
   res.send("send page having stipe form here");
@@ -45,6 +45,7 @@ router.get("/api/stripe/account", async (req, res) => {
   const account = await stripe.accounts.create({
     type: "express",
   });
+  // console.log(account);
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
     refresh_url: "http://localhost:3000/pay",
@@ -56,10 +57,10 @@ router.get("/api/stripe/account", async (req, res) => {
 });
 
 // Sending Payment to dirver
-router.post("/driver/receive-payment/:_id", async (req, res) => {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  CustomerOrder.findOne({ _id: req.params._id }, async (err, parcel) => {
+router.post("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
+  // let uniqueId =
+  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+  CustomerOrder.findOne({ _id: req.params.parcelId }, async (err, parcel) => {
     if (!err) {
       if (parcel.driverPayment === false && parcel.paymentStatus === true) {
         let price = parcel.offer * 100;
@@ -70,6 +71,22 @@ router.post("/driver/receive-payment/:_id", async (req, res) => {
             // destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
             destination: req.body.accountId,
           });
+          // const paymentIntent = await stripe.paymentIntents.create({
+          //   amount: 1000,
+          //   currency: 'usd',
+          //   transfer_data: {
+          //     destination: '{{CONNECTED_STRIPE_ACCOUNT_ID}}',
+          //   },
+          // });
+
+          // const paymentIntent = await stripe.paymentIntents.create({
+          //   amount: 1000,
+          //   currency: 'usd',
+          //   application_fee_amount: 123,
+          //   transfer_data: {
+          //     destination: '{{CONNECTED_STRIPE_ACCOUNT_ID}}',
+          //   },
+          // });
           res
             .status(200)
             .json({ success: true, message: "payment successful" });
@@ -77,8 +94,8 @@ router.post("/driver/receive-payment/:_id", async (req, res) => {
           //q1 start
 
           Driver.findOneAndUpdate(
-            { user: uniqueId },
-            { $push: { parcelsUnderway: req.params._id } },
+            { user: req.params.driverId },
+            { $push: { parcelsUnderway: req.params.parcelId } },
             { new: true },
             (err, driver) => {
               if (err) {
@@ -88,7 +105,7 @@ router.post("/driver/receive-payment/:_id", async (req, res) => {
                 console.log(driver);
                 //q2 start
                 CustomerOrder.findOneAndUpdate(
-                  { _id: req.params._id },
+                  { _id: req.params.parcelId },
                   {
                     $set: {
                       driverPayment: true,
@@ -158,7 +175,7 @@ router.post("/driver/receive-payment/:_id", async (req, res) => {
           );
           //q1 end
           CustomerOrder.findOne(
-            { _id: req.params._id },
+            { _id: req.params.parcelId },
             async function (err, parcel) {
               if (!err) {
                 ////  notification start
@@ -182,7 +199,7 @@ router.post("/driver/receive-payment/:_id", async (req, res) => {
                 ////  notification end
                 ////  notification start
                 const driverNotification = new Notification({
-                  receiverId: uniqueId,
+                  receiverId: req.params.driverId,
                   text: "Your Picked Parcel from " + parcel.senderName + ".",
                 });
 
