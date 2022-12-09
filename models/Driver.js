@@ -94,6 +94,7 @@ const driverSchema = new mongoose.Schema(
     },
     DrivingFor: String,
     Model: String,
+    AccountId: { type: String, default: "" },
     parcelsUnderway: [
       { type: mongoose.Schema.Types.ObjectId, ref: "customersorders" },
     ],

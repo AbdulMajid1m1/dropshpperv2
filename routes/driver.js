@@ -254,9 +254,12 @@ router.get("/drivers/search-parcel/:searchText", function (req, res) {
 router.get("/drivers/homepage/:id", function (req, res) {
   // let uniqueId =
   //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+  // Business.find({ city : { $regex: city, $options: 'i' } }
+  // Driver.findOne({ _id: { $regex: req.params.id, $options: 'i' } }, function (err, user) {
+  // Driver.findO({ city : { $regex: city, $options: 'i' } }
   Driver.findOne({ _id: req.params.id }, function (err, user) {
     if (err) {
-      res.status(400).json({ error: err });
+      res.status(500).json({ error: err });
     } else {
       try {
         console.log("user city is " + user.city);
@@ -266,7 +269,7 @@ router.get("/drivers/homepage/:id", function (req, res) {
 
       //q2
       CustomerOrder.find(
-        { $and: [{ pickupAddress: user.city }, { parcelStatus: "pending" }] },
+        { $and: [{ pickupAddress: { $regex: user.city, $options: 'i' } }, { parcelStatus: "pending" }] },
         function (err, parcelOne) {
           if (err) {
             console.log(err);
@@ -337,7 +340,7 @@ router.get("/drivers/deliveries/underway/:id", function (req, res) {
   //q1 start
   Driver.findOne({ user: req.params.id }, (err, driver) => {
     if (err) {
-      res.status(400).json({ error: err });
+      res.status(500).json({ error: err });
     } else {
       // console.log(driver._id);
       CustomerOrder.find(
@@ -464,14 +467,14 @@ router.get("/drivers/deliveries/completed/:id", function (req, res) {
 // });
 
 // Completing parecl order request by driver
-router.post("/drivers/deliveries/completed/:_id", function (req, res) {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
+router.post("/drivers/deliveries/complete/:driverId/:parcelId", function (req, res) {
+  // let uniqueId =
+  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
   Driver.findOneAndUpdate(
-    { user: uniqueId },
+    { user:  req.params.driverId },
     {
-      $pull: { parcelsUnderway: req.params._id },
-      $push: { parcelsCompleted: req.params._id },
+      $pull: { parcelsUnderway: req.params.parcelId },
+      $push: { parcelsCompleted: req.params.parcelId },
     },
     { new: true },
     (err, driver) => {
@@ -481,7 +484,7 @@ router.post("/drivers/deliveries/completed/:_id", function (req, res) {
         console.log(driver);
         //q2 start
         CustomerOrder.findOneAndUpdate(
-          { _id: req.params._id },
+          { _id: req.params.parcelId },
           { $set: { parcelStatus: "completed" } },
           { new: true },
           (err, parcel) => {
@@ -492,13 +495,13 @@ router.post("/drivers/deliveries/completed/:_id", function (req, res) {
             }
           }
         );
-        //q2 end
+      
       }
     }
   );
-  //q1 end
+ 
 
-  CustomerOrder.findOne({ _id: req.params._id }, async function (err, parcel) {
+  CustomerOrder.findOne({ _id: req.params.parcelId }, async function (err, parcel) {
     if (!err) {
       ////  notification start
       const senderNotification = new Notification({
@@ -517,7 +520,7 @@ router.post("/drivers/deliveries/completed/:_id", function (req, res) {
 
       ////  notification end
       const driverNotification = new Notification({
-        receiverId: uniqueId,
+        receiverId: req.params.driverId,
         text:
           "Congratulations! You have successfully completed the delivery from " +
           parcel.senderName +

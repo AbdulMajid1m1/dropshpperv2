@@ -6,11 +6,11 @@ const Conversation = require("../models/Conversation");
 const Notification = require("../models/Notification");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const isAuth = require("../middleware/auth");
-const BaseUrl = "http://localhost:3000";
+const BaseUrl = "http://dropshpper-env.eba-vxawe2k2.us-east-1.elasticbeanstalk.com";
 // Receving Payment using payment intent
-router.get("/create-payment-intent", async (req, res) => {
-  res.send("send page having stipe form here");
-});
+// router.get(`${BaseUrl}/hello`, async (req, res) => {
+//   res.send("send page having stipe form here");
+// });
 router.post("/create-payment-intent", async (req, res) => {
   const { items } = req.body;
   const paymentIntent = await stripe.paymentIntents.create({
@@ -41,23 +41,52 @@ router.post("/create-payment-intent", async (req, res) => {
   });
 });
 
-router.get("/api/stripe/account", async (req, res) => {
-  const account = await stripe.accounts.create({
-    type: "express",
-  });
-  // console.log(account);
-  const accountLinks = await stripe.accountLinks.create({
-    account: account.id,
-    refresh_url: "http://localhost:3000/pay",
-    return_url: "http://localhost:3000/pay",
-    type: "account_onboarding",
-  });
-  // In case of request generated from the web app, redirect
-  res.redirect(accountLinks.url);
+router.get("/api/stripe/account/:driverId/:parcelId", async (req, res) => {
+  Driver.findOne({ _id: req.params.driverId }, async (err, driver) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (driver.AccountId.length === 0) {
+        const account = await stripe.accounts.create({
+          type: "express",
+        });
+        // console.log(account);
+        // const saveAccountId
+        Driver.findOneAndUpdate(
+          { _id: req.params.driverId },
+          { $set: { AccountId: account.id } },
+          { new: true },
+          (err, result) => {
+            if (!err) {
+              console.log(result);
+            } else {
+              console.log(err);
+            }
+          }
+        );
+        const accountLinks = await stripe.accountLinks.create({
+          account: account.id,
+          refresh_url: BaseUrl + "/onbording-failure",
+          return_url: BaseUrl + "/driver/receive-payment/" + req.params.driverId + "/" + req.params.parcelId,
+          type: "account_onboarding",
+        });
+        // In case of request generated from the web app, redirect
+        res.redirect(accountLinks.url);
+      } else {
+        res.redirect(BaseUrl + "/driver/receive-payment/" + req.params.driverId + "/" + req.params.parcelId)
+      }
+
+    }
+  })
+
+
 });
 
 // Sending Payment to dirver
-router.post("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
+router.get("/onbording-failure", async (req, res) => {
+  res.status(500).json({ error: "something went wrong!" })
+})
+router.get("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
   // let uniqueId =
   //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
   CustomerOrder.findOne({ _id: req.params.parcelId }, async (err, parcel) => {
@@ -65,12 +94,28 @@ router.post("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
       if (parcel.driverPayment === false && parcel.paymentStatus === true) {
         let price = parcel.offer * 100;
         try {
-          const transfer = await stripe.transfers.create({
-            amount: price,
-            currency: "usd",
-            // destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
-            destination: req.body.accountId,
+          Driver.findOne({ _id: req.params.driverId }, async (err, driver) => {
+            if (!err) {
+              if (driver.AccountId !== "") {
+                const transfer = await stripe.transfers.create({
+                  amount: price,
+                  currency: "usd",
+                  // destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
+                  destination: driver.AccountId,
+                });
+                res
+                  .status(200)
+                  .json({ success: true, message: "payment successful" });
+              } else {
+                console.log({
+                  message: "Connnect your account first to receive payment",
+                });
+              }
+            } else {
+              console.log({ error: err });
+            }
           });
+
           // const paymentIntent = await stripe.paymentIntents.create({
           //   amount: 1000,
           //   currency: 'usd',
@@ -87,9 +132,7 @@ router.post("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
           //     destination: '{{CONNECTED_STRIPE_ACCOUNT_ID}}',
           //   },
           // });
-          res
-            .status(200)
-            .json({ success: true, message: "payment successful" });
+
           //backend processes///////////
           //q1 start
 
@@ -220,7 +263,7 @@ router.post("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
                   User.findOne(
                     { username: parcel.receiverEmail },
                     async function (err, user) {
-                      if (!err) {
+                      if (user) {
                         const receiverNotification = new Notification({
                           receiverId: user._id,
                           text:

@@ -108,6 +108,7 @@ store.on("error", function (error) {
   console.log(error);
 });
 
+
 // mongoose.set("useCreateIndex", true);
 
 passportCustomer.use(User.createStrategy());
@@ -577,3 +578,13 @@ const port = process.env.PORT || 3000;
 app.listen(port, function () {
   console.log(`Server has started on ${port}`);
 });
+
+
+
+
+
+
+
+
+// CLIENT_ID='963213914838-ugq8g5lji7ralhcr8jsmhpsht0ui2idp.apps.googleusercontent.com' CLIENT_SECRET='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' FACEBOOK_APP_ID='414233350548632' FACEBOOK_APP_SECRET='8e66984ec43084eb1d1b0a068551ab94' STRIPE_PUBLIC_KEY='pk_test_51LVaiXGVj1b6RabbrChlXCoZ0d56rGHk4ZQ447NdUaoBA5G172vWboPc83k33NrjkT88abQOjWSxkxOWLBn7aaBI000x2YZoz4' MONGO_URL='mongodb+srv://jason123:HappyDAYS1@cluster0.wy0ayit.mongodb.net/dropshpperDB?retryWrites=true&w=majority' CLOUD_NAME='creativem' API_KEY='728829647533853' API_SECRET='d7FOpvaEzC9D0XmKY_pGqzGTUm4'  
+// CLIENT_ID='963213914838-ugq8g5lji7ralhcr8jsmhpsht0ui2idp.apps.googleusercontent.com' CLIENT_SECRET='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' FACEBOOK_APP_ID='414233350548632' FACEBOOK_APP_SECRET='8e66984ec43084eb1d1b0a068551ab94' STRIPE_PUBLIC_KEY='pk_test_51LVaiXGVj1b6RabbrChlXCoZ0d56rGHk4ZQ447NdUaoBA5G172vWboPc83k33NrjkT88abQOjWSxkxOWLBn7aaBI000x2YZoz4' STRIPE_SECRET_KEY ='sk_test_51LVaiXGVj1b6RabbJKqp89wRd5x7o7kbQrNowOArcg9oEThuCwUDnIC4rcGGJzRMIvgIc3K4whpGjBVXLVjb1O8W00q7dCUr6K' MONGO_URL='mongodb+srv://jason123:HappyDAYS1@cluster0.wy0ayit.mongodb.net/dropshpperDB?retryWrites=true&w=majority' CLOUD_NAME='creativem' API_KEY='728829647533853' API_SECRET='d7FOpvaEzC9D0XmKY_pGqzGTUm4'  

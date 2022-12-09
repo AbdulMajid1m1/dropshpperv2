@@ -5,19 +5,19 @@ const CustomerOrder = require("../models/CustomerOrder");
 const Conversation = require("../models/Conversation");
 const isAuth = require("../middleware/auth");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const BaseUrl = "http://localhost:3000";
 //Selecting Customer Category. and showing Customer posted orders both pending and underway
-
 router.get("/home/customers/:id", function (req, res) {
   // CustomerOrder.deleteMany({ paymentStatus: false }, (req, res) => {
   //   console.log("delted parcels with payment status false");
   // });
-  CustomerOrder.deleteMany({ paymentStatus: false })
-    .then(function () {
-      console.log("delted parcels with payment status false"); // Success
-    })
-    .catch(function (error) {
-      console.log(error); // Failure
-    });
+  // CustomerOrder.deleteMany({ paymentStatus: false })
+  //   .then(function () {
+  //     console.log("delted parcels with payment status false"); // Success
+  //   })
+  //   .catch(function (error) {
+  //     console.log(error); // Failure
+  //   });
   CustomerOrder.find(
     { $and: [{ user: req.params.id }, { parcelStatus: { $ne: "completed" } }] },
     (err, foundOrders) => {
@@ -292,42 +292,48 @@ router.post("/update/customer-address/:id", function (req, res) {
 
 // ************* Updated Routes *************
 
-//Receiver Review........
-router.post("/customers/receiver-review/:_id", function (req, res) {
-  let uniqueId =
-    req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  //q1 start
-  CustomerOrder.findOne({ _id: req.params._id }, (err, parcel) => {
-    if (!err) {
-      let c = 1;
-      Driver.findOneAndUpdate(
-        ///////////////////// check  /////////////////////////////
-        { _id: parcel.driver },
-        {
-          // $set:{year:31},
-          $push: {
-            reviews: [
-              {
-                reviewerId: uniqueId,
-                rating: req.body.rating,
-                // review: req.body.review.length !== 0 && req.body.review,
-                review: req.body.review,
-              },
-            ],
+//Receiver Review post route ........
+router.post(
+  "/customers/receiver-review/:user_id/:parcel_id",
+  function (req, res) {
+    // let uniqueId =
+    //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+    //q1 start
+    CustomerOrder.findOne({ _id: req.params.parcel_id }, (err, parcel) => {
+      if (!err) {
+        let c = 1;
+        Driver.findOneAndUpdate(
+          ///////////////////// check  /////////////////////////////
+          { _id: parcel.driver },
+          {
+            // $set:{year:31},
+            $push: {
+              reviews: [
+                {
+                  reviewerId: req.params.user_id,
+                  rating: req.body.rating,
+                  // review: req.body.review.length !== 0 && req.body.review,
+                  review: req.body.review,
+                },
+              ],
+            },
           },
-        },
-        // { $set: { paymentStatus: true } },
-        { new: true },
-        (err, result) => {
-          console.log(result);
-          res.send(result);
-        }
-      );
-    } else {
-      console.log(err);
-    }
-  }); //q1 end
-});
+          // { $set: { paymentStatus: true } },
+          { new: true },
+          (err, result) => {
+            if (!err) {
+              res.status(200).json({ message: "success", driverData: result });
+            } else {
+              res.status(500).json({ error: err });
+            }
+          }
+        );
+      } else {
+        res.status(500).json({ error: err });
+      }
+    }); //q1 end
+  }
+);
 
 router.post("/customers/post-parcel/:id", function (req, res) {
   var userId = req.params.id;
@@ -338,6 +344,7 @@ router.post("/customers/post-parcel/:id", function (req, res) {
     pickupAddress: req.body.pickupAddress,
     destinationAddress: req.body.destinationAddress,
     size: req.body.size,
+    receiverMobileNumber: req.body.receiverMobileNumber,
     offer: req.body.offer,
     message: req.body.message,
     sendingLocation: req.body.sendingLocation,
@@ -353,9 +360,10 @@ router.post("/customers/post-parcel/:id", function (req, res) {
         req.app.locals.ParcelId = order._id;
         // res.status(200).json({ parcel: order, parcelId: order._id });
         req.session.order1 = order;
-        res.redirect("/successs");
+        // res.redirect("/successs");
+        res.status(200).json({ messsage: "success", parcelDelivery: order });
 
-        console.log(order);
+        // console.log(order);
       } else {
         console.log("cannot post order");
       }
@@ -415,6 +423,7 @@ router.delete("/customers/:_id", async (req, res) => {
 //   //   const { product } = req.body;
 // });
 
+// no use
 router.post("/payment/:id", async (req, res) => {
   //   const { product } = req.body;
   //   const { product } = req.body;
@@ -461,8 +470,8 @@ router.post("/payment/:id", async (req, res) => {
             },
           ],
           mode: "payment",
-          success_url: "http://localhost:3000/payment-success",
-          cancel_url: "http://localhost:3000/payment-fail",
+          success_url: BaseUrl + "/payment-success",
+          cancel_url: BaseUrl + "/payment-fail",
         });
 
         res.json({ id: session.id });

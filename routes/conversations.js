@@ -14,9 +14,9 @@ router.post("/", async (req, res) => {
   } catch (err) {
     res.status(500).json(err);
   }
-});
+}); 
 //get conv of a user
-router.get("/:userId", isAuth, async (req, res) => {
+router.get("/:userId", async (req, res) => {
   try {
     const conversation = await Conversation.find({
       members: { $in: [req.params.userId] },
