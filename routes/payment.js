@@ -43,8 +43,6 @@ router.post("/create-payment-intent", async (req, res) => {
 });
 
 router.get("/api/stripe/account/:driverId/:parcelId", async (req, res) => {
-  // account id of one drvier cannot be used for other driver payment to do so using accountIdupdate var
-
   Driver.findOne({ _id: req.params.driverId }, async (err, driver) => {
     if (err) {
       res.status(500).json({ error: err })
@@ -55,24 +53,18 @@ router.get("/api/stripe/account/:driverId/:parcelId", async (req, res) => {
         });
         // console.log(account);
         // const saveAccountId
-        req.session.accountIdUpdate = true;
         req.session.accountId = account.id;
         const accountLinks = await stripe.accountLinks.create({
           account: account.id,
           refresh_url: BaseUrl + "/onbording-failure",
-          return_url: BaseUrl + "/driver/receive-payment/" + req.params.driverId + "/" + req.params.parcelId,
+          // return_url: BaseUrl + "/driver/receive-payment/" + req.params.driverId + "/" + req.params.parcelId,
+          return_url: BaseUrl + "/driver/stripe-account-id/" + req.params.driverId + "/" + req.params.parcelId,
           type: "account_onboarding",
         });
-
-        /// to send account to redirected Url saving it to session
-
-
         // In case of request generated from the web app, redirect
         res.redirect(accountLinks.url);
       } else {
-        req.session.accountIdUpdate = false;
         res.redirect(BaseUrl + "/driver/receive-payment/" + req.params.driverId + "/" + req.params.parcelId)
-
       }
 
     }
@@ -80,6 +72,24 @@ router.get("/api/stripe/account/:driverId/:parcelId", async (req, res) => {
 
 
 });
+
+router.get("/driver/stripe-account-id/:driverId/:parcelId", async (req, res) => {
+  Driver.findOneAndUpdate(
+    { _id: req.params.driverId },
+    { $set: { AccountId: req.session.accountId } },
+    { new: true },
+    (err, result) => {
+      if (!err) {
+        console.log(result);
+        res.redirect("/driver/receive-payment/" + req.params.driverId + "/" + req.params.parcelId);
+      } else {
+        res.status(500).json({ error: err })
+      }
+    }
+  );
+
+})
+
 
 // Sending Payment to dirver
 router.get("/checkkk/:id", (req, res) => {
@@ -96,440 +106,224 @@ router.get("/onbording-failure", async (req, res) => {
   res.status(500).json({ error: "something went wrong!" })
 })
 router.get("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
-  if (req.session.accountIdUpdate
-  ) {
-    Driver.findOneAndUpdate(
-      { _id: req.params.driverId },
-      // req.session.accountId is coming from previou route /api/stripe
-      { $set: { AccountId: req.session.accountId } },
-      { new: true },
-      (err, result) => {
-        if (err) {
-          res.status(500).json({ error: err })
-        } else {
-          CustomerOrder.findOne({ _id: req.params.parcelId }, async (err, parcel) => {
-            if (!err) {
-              if (parcel.driverPayment === false) {
-                let price = parcel.offer * 100;
-                try {
-                  Driver.findOne({ _id: req.params.driverId }, async (err, driver) => {
-                    if (err) {
-                      console.log({ error: err });
+  // let uniqueId =
+  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
+  CustomerOrder.findOne({ _id: req.params.parcelId }, async (err, parcel) => {
+    if (err) {
+      res.status(500).json({ error: err });
+    }
+    else if (parcel !== null) {
 
-                    } else {
+      if (parcel.driverPayment === false) {
+        let price = parcel.offer * 100;
+        try {
+          Driver.findOne({ _id: req.params.driverId }, async (err, driver) => {
+            if (err) {
+              console.log({ error: err });
 
-                      const transfer = await stripe.transfers.create({
-                        amount: price,
-                        currency: "usd",
-                        // destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
-                        destination: driver.AccountId,
-                      });
-                      res
-                        .status(200)
-                        .json({ success: true, message: "payment successful" });
-                    }
-                    //q1 start
+            } else {
 
-                    Driver.findOneAndUpdate(
-                      { user: req.params.driverId },
-                      { $push: { parcelsUnderway: req.params.parcelId } },
-                      { new: true },
-                      (err, driver) => {
-                        if (err) {
-                          console.log(err);
-                        } else {
-                          console.log("show driver");
-                          console.log(driver);
-                          //q2 start
-                          CustomerOrder.findOneAndUpdate(
-                            { _id: req.params.parcelId },
-                            {
-                              $set: {
-                                driverPayment: true,
-                                driver: driver._id,
-                                parcelStatus: "underway",
-                              },
-                            },
-                            { new: true },
-                            async (err, parcel) => {
-                              if (err) {
-                                console.log(err);
+              const transfer = await stripe.transfers.create({
+                amount: price,
+                currency: "usd",
+                // destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
+                destination: driver.AccountId,
+              });
+              res
+                .status(200)
+                .json({ success: true, message: "payment successful" });
+            }
+            //q1 start
+
+            Driver.findOneAndUpdate(
+              { _id: req.params.driverId },
+              { $push: { parcelsUnderway: req.params.parcelId } },
+              { new: true },
+              (err, driver) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log("show driver");
+                  console.log(driver);
+                  //q2 start
+                  CustomerOrder.findOneAndUpdate(
+                    { _id: req.params.parcelId },
+                    {
+                      $set: {
+                        driverPayment: true,
+                        driver: driver._id,
+                        parcelStatus: "underway",
+                      },
+                    },
+                    { new: true },
+                    async (err, parcel) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        User.findOne(
+                          { username: parcel.receiverEmail },
+                          async function (err, user) {
+                            if (!err) {
+                              if (user !== null) {
+                                const newConversation = new Conversation({
+                                  parcelId: req.params._id,
+                                  members: [
+                                    parcel.user.toString(),
+                                    parcel.driver.toString(),
+                                    user._id.toString(),
+                                  ],
+                                });
+
+                                try {
+                                  const savedConversation =
+                                    await newConversation.save();
+                                  // res.status(200).json(savedConversation);
+                                  console.log("conversation" + savedConversation);
+                                } catch (err) {
+                                  // res.status(500).json(err);
+                                  console.log(err);
+                                }
                               } else {
-                                User.findOne(
-                                  { username: parcel.receiverEmail },
-                                  async function (err, user) {
-                                    if (!err) {
-                                      if (user !== null) {
-                                        const newConversation = new Conversation({
-                                          parcelId: req.params._id,
-                                          members: [
-                                            parcel.user.toString(),
-                                            parcel.driver.toString(),
-                                            user._id.toString(),
-                                          ],
-                                        });
+                                const newConversation = new Conversation({
+                                  members: [
+                                    parcel.user.toString(),
+                                    parcel.driver.toString(),
+                                  ],
+                                });
 
-                                        try {
-                                          const savedConversation =
-                                            await newConversation.save();
-                                          // res.status(200).json(savedConversation);
-                                          console.log(savedConversation);
-                                        } catch (err) {
-                                          // res.status(500).json(err);
-                                          console.log(err);
-                                        }
-                                      } else {
-                                        const newConversation = new Conversation({
-                                          members: [
-                                            parcel.user.toString(),
-                                            parcel.driver.toString(),
-                                          ],
-                                        });
-
-                                        try {
-                                          const savedConversation =
-                                            await newConversation.save();
-                                          // res.status(200).json(savedConversation);
-                                          console.log(savedConversation);
-                                        } catch (err) {
-                                          // res.status(500).json(err);
-                                          console.log(err);
-                                        }
-                                      }
-
-                                      ////  notification end
-                                    } else {
-                                      console.log(err);
-                                    }
-                                  }
-                                );
-                              }
-                            }
-                          );
-                          //q2 end
-                        }
-                      }
-                    );
-                    //q1 end
-                    CustomerOrder.findOne(
-                      { _id: req.params.parcelId },
-                      async function (err, parcel) {
-                        if (!err) {
-                          ////  notification start
-                          const senderNotification = new Notification({
-                            receiverId: parcel.user,
-                            text:
-                              "Your sending Parcel to " +
-                              parcel.receiverName +
-                              " on the way!",
-                          });
-
-                          try {
-                            const savedNotification = await senderNotification.save();
-                            // res.status(200).json(savedNotification);
-                            console.log(savedNotification);
-                          } catch (err) {
-                            // res.status(500).json(err);
-                            console.log(err);
-                          }
-
-                          ////  notification end
-                          ////  notification start
-                          const driverNotification = new Notification({
-                            receiverId: req.params.driverId,
-                            text: "Your Picked Parcel from " + parcel.senderName + ".",
-                          });
-
-                          try {
-                            const savedDriverNotification =
-                              await driverNotification.save();
-                            // res.status(200).json(savedNotification);
-                            console.log(savedDriverNotification);
-                          } catch (err) {
-                            // res.status(500).json(err);
-                            console.log(err);
-                          }
-
-                          ////  notification end
-
-                          ////  notification start
-                          try {
-                            User.findOne(
-                              { username: parcel.receiverEmail },
-                              async function (err, user) {
-                                if (user) {
-                                  const receiverNotification = new Notification({
-                                    receiverId: user._id,
-                                    text:
-                                      "Your Recieving Parcel from " +
-                                      parcel.senderName +
-                                      " is on the way!",
-                                  });
-
-                                  try {
-                                    const saveReceiverNotification =
-                                      await receiverNotification.save();
-                                    // res.status(200).json(saveReceiverNotification);
-                                    console.log(saveReceiverNotification);
-                                  } catch (err) {
-                                    // res.status(500).json(err);
-                                    console.log(err);
-                                  }
-
-                                  ////  notification end
-                                } else {
+                                try {
+                                  const savedConversation =
+                                    await newConversation.save();
+                                  // res.status(200).json(savedConversation);
+                                  console.log(savedConversation);
+                                } catch (err) {
+                                  // res.status(500).json(err);
                                   console.log(err);
                                 }
                               }
-                            );
-                          } catch (err) {
-                            console.log("receiver is not an app member");
-                            console.log(err);
+
+                              ////  notification end
+                            }
+                            else if (err) {
+                              console.log(err)
+                            }
+                            else {
+                              console.log("Reciever Email does not exit!");
+                            }
                           }
-                        } else {
-                          res.status(501).json(err);
-                        }
+                        );
                       }
-                    );
-                  });
-
-
-
-
-                  ////////////-------////////////////
-                } catch (err) {
-                  res.status(404).json({
-                    err: err.message,
-                    message: "sent create link account button here",
-                  });
+                    }
+                  );
+                  //q2 end
                 }
-              } else {
-                res.status(404).json({
-                  success: false,
-                  message:
-                    "payment is sent already or customer has not paid for parcel till now",
-                });
               }
-            } else {
-              console.log(err);
-            }
-          })
-        }
-      }
-    );
-  }
-  else {
+            );
+            //q1 end
+            CustomerOrder.findOne(
+              { _id: req.params.parcelId },
+              async function (err, parcel) {
+                if (!err) {
+                  ////  notification start
+                  const senderNotification = new Notification({
+                    receiverId: parcel.user,
+                    text:
+                      "Your sending Parcel to " +
+                      parcel.receiverName +
+                      " on the way!",
+                  });
 
-    CustomerOrder.findOne({ _id: req.params.parcelId }, async (err, parcel) => {
-      if (!err) {
-        if (parcel.driverPayment === false) {
-          let price = parcel.offer * 100;
-          try {
-            Driver.findOne({ _id: req.params.driverId }, async (err, driver) => {
-              if (err) {
-                console.log({ error: err });
-
-              } else {
-
-                const transfer = await stripe.transfers.create({
-                  amount: price,
-                  currency: "usd",
-                  // destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
-                  destination: driver.AccountId,
-                });
-                res
-                  .status(200)
-                  .json({ success: true, message: "payment successful" });
-              }
-              //q1 start
-
-              Driver.findOneAndUpdate(
-                { user: req.params.driverId },
-                { $push: { parcelsUnderway: req.params.parcelId } },
-                { new: true },
-                (err, driver) => {
-                  if (err) {
+                  try {
+                    const savedNotification = await senderNotification.save();
+                    // res.status(200).json(savedNotification);
+                    console.log(savedNotification);
+                  } catch (err) {
+                    // res.status(500).json(err);
                     console.log(err);
-                  } else {
-                    console.log("show driver");
-                    console.log(driver);
-                    //q2 start
-                    CustomerOrder.findOneAndUpdate(
-                      { _id: req.params.parcelId },
-                      {
-                        $set: {
-                          driverPayment: true,
-                          driver: driver._id,
-                          parcelStatus: "underway",
-                        },
-                      },
-                      { new: true },
-                      async (err, parcel) => {
-                        if (err) {
-                          console.log(err);
+                  }
+
+                  ////  notification end
+                  ////  notification start
+                  const driverNotification = new Notification({
+                    receiverId: req.params.driverId,
+                    text: "Your Picked Parcel from " + parcel.senderName + ".",
+                  });
+
+                  try {
+                    const savedDriverNotification =
+                      await driverNotification.save();
+                    // res.status(200).json(savedNotification);
+                    console.log(savedDriverNotification);
+                  } catch (err) {
+                    // res.status(500).json(err);
+                    console.log("notifiacition side" + err);
+                  }
+
+                  ////  notification end
+
+                  ////  notification start
+                  try {
+                    User.findOne(
+                      { username: parcel.receiverEmail },
+                      async function (err, user) {
+                        if (user) {
+                          const receiverNotification = new Notification({
+                            receiverId: user._id,
+                            text:
+                              "Your Recieving Parcel from " +
+                              parcel.senderName +
+                              " is on the way!",
+                          });
+
+                          try {
+                            const saveReceiverNotification =
+                              await receiverNotification.save();
+                            // res.status(200).json(saveReceiverNotification);
+                            console.log(saveReceiverNotification);
+                          } catch (err) {
+                            // res.status(500).json(err);
+                            console.log("notifiacition side" + err);
+                          }
+
+                          ////  notification end
                         } else {
-                          User.findOne(
-                            { username: parcel.receiverEmail },
-                            async function (err, user) {
-                              if (!err) {
-                                if (user !== null) {
-                                  const newConversation = new Conversation({
-                                    parcelId: req.params._id,
-                                    members: [
-                                      parcel.user.toString(),
-                                      parcel.driver.toString(),
-                                      user._id.toString(),
-                                    ],
-                                  });
-
-                                  try {
-                                    const savedConversation =
-                                      await newConversation.save();
-                                    // res.status(200).json(savedConversation);
-                                    console.log(savedConversation);
-                                  } catch (err) {
-                                    // res.status(500).json(err);
-                                    console.log(err);
-                                  }
-                                } else {
-                                  const newConversation = new Conversation({
-                                    members: [
-                                      parcel.user.toString(),
-                                      parcel.driver.toString(),
-                                    ],
-                                  });
-
-                                  try {
-                                    const savedConversation =
-                                      await newConversation.save();
-                                    // res.status(200).json(savedConversation);
-                                    console.log(savedConversation);
-                                  } catch (err) {
-                                    // res.status(500).json(err);
-                                    console.log(err);
-                                  }
-                                }
-
-                                ////  notification end
-                              } else {
-                                console.log(err);
-                              }
-                            }
-                          );
+                          console.log("Resiver Email side" + err);
                         }
                       }
                     );
-                    //q2 end
+                  } catch (err) {
+                    console.log("receiver is not an app member");
+                    console.log(err);
                   }
+                } else {
+                  res.status(501).json(err);
                 }
-              );
-              //q1 end
-              CustomerOrder.findOne(
-                { _id: req.params.parcelId },
-                async function (err, parcel) {
-                  if (!err) {
-                    ////  notification start
-                    const senderNotification = new Notification({
-                      receiverId: parcel.user,
-                      text:
-                        "Your sending Parcel to " +
-                        parcel.receiverName +
-                        " on the way!",
-                    });
-
-                    try {
-                      const savedNotification = await senderNotification.save();
-                      // res.status(200).json(savedNotification);
-                      console.log(savedNotification);
-                    } catch (err) {
-                      // res.status(500).json(err);
-                      console.log(err);
-                    }
-
-                    ////  notification end
-                    ////  notification start
-                    const driverNotification = new Notification({
-                      receiverId: req.params.driverId,
-                      text: "Your Picked Parcel from " + parcel.senderName + ".",
-                    });
-
-                    try {
-                      const savedDriverNotification =
-                        await driverNotification.save();
-                      // res.status(200).json(savedNotification);
-                      console.log(savedDriverNotification);
-                    } catch (err) {
-                      // res.status(500).json(err);
-                      console.log(err);
-                    }
-
-                    ////  notification end
-
-                    ////  notification start
-                    try {
-                      User.findOne(
-                        { username: parcel.receiverEmail },
-                        async function (err, user) {
-                          if (user) {
-                            const receiverNotification = new Notification({
-                              receiverId: user._id,
-                              text:
-                                "Your Recieving Parcel from " +
-                                parcel.senderName +
-                                " is on the way!",
-                            });
-
-                            try {
-                              const saveReceiverNotification =
-                                await receiverNotification.save();
-                              // res.status(200).json(saveReceiverNotification);
-                              console.log(saveReceiverNotification);
-                            } catch (err) {
-                              // res.status(500).json(err);
-                              console.log(err);
-                            }
-
-                            ////  notification end
-                          } else {
-                            console.log(err);
-                          }
-                        }
-                      );
-                    } catch (err) {
-                      console.log("receiver is not an app member");
-                      console.log(err);
-                    }
-                  } else {
-                    res.status(501).json(err);
-                  }
-                }
-              );
-            });
+              }
+            );
+          });
 
 
 
 
-            ////////////-------////////////////
-          } catch (err) {
-            res.status(404).json({
-              err: err.message,
-              message: "sent create link account button here",
-            });
-          }
-        } else {
+          ////////////-------////////////////
+        } catch (err) {
           res.status(404).json({
-            success: false,
-            message:
-              "payment is sent already or customer has not paid for parcel till now",
+            err: err.message,
+            message: "sent create link account button here",
           });
         }
       } else {
-        console.log(err);
+        res.status(404).json({
+          success: false,
+          message:
+            "payment is sent already!",
+        });
       }
-    })
-
-  }
-
+    }
+    else {
+      res.status(400).json({ message: "something went wrong!" });
+    }
+  });
 });
 
 module.exports = router;

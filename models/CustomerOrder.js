@@ -18,6 +18,8 @@ const customerOrderSchema = new mongoose.Schema(
     paymentStatus: { type: Boolean, default: true },
     driverPayment: { type: Boolean, default: false },
     parcelStatus: { type: String, default: "pending" },
+    driverStatus: { type: Boolean, default: false },
+    customerStatus: { type: Boolean, default: false },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
     driver: {
       type: mongoose.Schema.Types.ObjectId,

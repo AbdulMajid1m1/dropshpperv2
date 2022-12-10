@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Driver = require("../models/Driver");
 const CustomerOrder = require("../models/CustomerOrder");
 const Conversation = require("../models/Conversation");
+const Notification = require("../models/Notification");
 const cloudinary = require("cloudinary").v2;
 
 // --------------------- NEW API  START-------------------////
@@ -467,112 +468,24 @@ router.get("/drivers/deliveries/completed/:id", function (req, res) {
 // });
 
 // Completing parecl order request by driver
-router.post("/drivers/deliveries/complete/:driverId/:parcelId", function (req, res) {
-  // let uniqueId =
-  //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
-  Driver.findOneAndUpdate(
-    { user:  req.params.driverId },
-    {
-      $pull: { parcelsUnderway: req.params.parcelId },
-      $push: { parcelsCompleted: req.params.parcelId },
-    },
+
+router.post("/driver/request-delivery-completion/:driverId/:parcelId", function (req, res) {
+  CustomerOrder.findOneAndUpdate(
+    { _id: req.params.parcelId },
+    { driverStatus: true },
     { new: true },
-    (err, driver) => {
+    (err, parcel) => {
       if (err) {
-        console.log(err);
+        res.status(500).json({ error: err });
       } else {
-        console.log(driver);
-        //q2 start
-        CustomerOrder.findOneAndUpdate(
-          { _id: req.params.parcelId },
-          { $set: { parcelStatus: "completed" } },
-          { new: true },
-          (err, parcel) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log(parcel);
-            }
-          }
-        );
-      
+        res.status(500).json({ FoundParcel: parcel });
       }
     }
   );
- 
 
-  CustomerOrder.findOne({ _id: req.params.parcelId }, async function (err, parcel) {
-    if (!err) {
-      ////  notification start
-      const senderNotification = new Notification({
-        receiverId: parcel.user,
-        text: "Your sending Parcel to " + parcel.receiverName + " is Reached!",
-      });
+})
 
-      try {
-        const savedNotification = await senderNotification.save();
-        // res.status(200).json(savedNotification);
-        console.log(savedNotification);
-      } catch (err) {
-        // res.status(500).json(err);
-        console.log(err);
-      }
 
-      ////  notification end
-      const driverNotification = new Notification({
-        receiverId: req.params.driverId,
-        text:
-          "Congratulations! You have successfully completed the delivery from " +
-          parcel.senderName +
-          " to " +
-          parcel.receiverName +
-          ".",
-      });
 
-      try {
-        const savedDriverNotification = await driverNotification.save();
-        // res.status(200).json(savedNotification);
-        console.log(savedDriverNotification);
-      } catch (err) {
-        // res.status(500).json(err);
-        console.log(err);
-      }
-
-      ////  notification end
-
-      ////  notification start
-      User.findOne(
-        { username: parcel.receiverEmail },
-        async function (err, user) {
-          if (!err) {
-            const receiverNotification = new Notification({
-              receiverId: user._id,
-              text:
-                "Your Recieving Parcel from " +
-                parcel.senderName +
-                " is Reached!",
-            });
-
-            try {
-              const saveReceiverNotification =
-                await receiverNotification.save();
-              // res.status(200).json(saveReceiverNotification);
-              console.log(saveReceiverNotification);
-            } catch (err) {
-              // res.status(500).json(err);
-              console.log(err);
-            }
-
-            ////  notification end
-          } else {
-            console.log(err);
-          }
-        }
-      );
-    } else {
-      res.status(501).json(err);
-    }
-  });
-});
 
 module.exports = router;
