@@ -106,6 +106,8 @@ const driverSchema = new mongoose.Schema(
         reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
         rating: Number,
         review: String,
+        postedDate: Date,
+        reviewerName: String,
       },
     ],
   },

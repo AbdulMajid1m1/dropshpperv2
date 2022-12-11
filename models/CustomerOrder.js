@@ -14,6 +14,7 @@ const customerOrderSchema = new mongoose.Schema(
     offer: { type: Number, required: [true, "Amount is required"] },
     message: String,
     receiverMobileNumber: { type: String, default: "" },
+    conversationId: { type: String, default: "" },
     sendingLocation: { type: Boolean, default: false },
     paymentStatus: { type: Boolean, default: true },
     driverPayment: { type: Boolean, default: false },

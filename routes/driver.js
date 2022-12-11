@@ -486,6 +486,19 @@ router.post("/driver/request-delivery-completion/:driverId/:parcelId", function 
 })
 
 
+// FETCHING ALL REVIEWS ROUTE
+router.get("/driver-reviews/:driverId", function (req, res) {
+  Driver.findOne({ _id: req.params.driverId }, (err, driver) => {
+    if (!err) {
+      res.status(200).json({ Reviews: driver.reviews })
+    }
+    else {
+      res.status(500).json({ error: err })
+    }
+  })
+})
+
+
 
 
 module.exports = router;

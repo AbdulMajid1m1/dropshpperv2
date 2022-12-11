@@ -398,45 +398,54 @@ router.post("/customer/recieve-delivery/:driverId/:parcelId", function (req, res
   });
 });
 
-
-
-
 //Receiver Review post route ........
 router.post(
   "/customers/receiver-review/:user_id/:parcel_id",
   function (req, res) {
-    // let uniqueId =
-    //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
     //q1 start
     CustomerOrder.findOne({ _id: req.params.parcel_id }, (err, parcel) => {
       if (!err) {
         let c = 1;
-        Driver.findOneAndUpdate(
-          ///////////////////// check  /////////////////////////////
-          { _id: parcel.driver },
-          {
-            // $set:{year:31},
-            $push: {
-              reviews: [
-                {
-                  reviewerId: req.params.user_id,
-                  rating: req.body.rating,
-                  // review: req.body.review.length !== 0 && req.body.review,
-                  review: req.body.review,
-                },
-              ],
-            },
-          },
-          // { $set: { paymentStatus: true } },
-          { new: true },
-          (err, result) => {
-            if (!err) {
-              res.status(200).json({ message: "success", driverData: result });
-            } else {
-              res.status(500).json({ error: err });
-            }
+
+        User.findOne({ _id: req.params.user_id }, (err, receiver) => {
+          if (err) {
+            res.status(500).json({ error: err })
           }
-        );
+          else if (receiver !== null) {
+            Driver.findOneAndUpdate(
+              ///////////////////// check  /////////////////////////////
+              { _id: parcel.driver },
+              {
+                // $set:{year:31},
+                $push: {
+                  reviews: [
+                    {
+                      reviewerId: req.params.user_id,
+                      rating: req.body.rating,
+                      // review: req.body.review.length !== 0 && req.body.review,
+                      review: req.body.review,
+                      reviewerName: receiver.fullName,
+                      postedDate: Date.now(),
+                    },
+                  ],
+                },
+              },
+              // { $set: { paymentStatus: true } },
+              { new: true },
+              (err, result) => {
+                if (!err) {
+                  res.status(200).json({ message: "success", driverData: result });
+                } else {
+                  res.status(500).json({ error: err });
+                }
+              }
+            );
+          }
+          else {
+            res.status(400).json({ error: "User id is not correct!" });
+          }
+        })
+
       } else {
         res.status(500).json({ error: err });
       }

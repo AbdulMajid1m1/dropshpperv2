@@ -167,11 +167,11 @@ router.get("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
                               if (user !== null) {
                                 const newConversation = new Conversation({
                                   parcelId: req.params._id,
-                                  members: [
-                                    parcel.user.toString(),
-                                    parcel.driver.toString(),
-                                    user._id.toString(),
-                                  ],
+                                  members: {
+                                    senderId: parcel.user.toString(),
+                                    driverId: parcel.driver.toString(),
+                                    receiverId: user._id.toString(),
+                                  },
                                 });
 
                                 try {
@@ -185,10 +185,10 @@ router.get("/driver/receive-payment/:driverId/:parcelId", async (req, res) => {
                                 }
                               } else {
                                 const newConversation = new Conversation({
-                                  members: [
-                                    parcel.user.toString(),
-                                    parcel.driver.toString(),
-                                  ],
+                                  members: {
+                                    senderId: parcel.user.toString(),
+                                    driverId: parcel.driver.toString(),
+                                  },
                                 });
 
                                 try {

@@ -6,8 +6,14 @@ const ConversationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "customersorders",
     },
+    // members: {
+    //   type: Array,
+    // },
     members: {
-      type: Array,
+      senderId: { type: mongoose.Types.ObjectId, default: "" },
+      receiverId: { type: mongoose.Types.ObjectId, default: "" },
+      driverId: { type: mongoose.Types.ObjectId, default: "" },
+
     },
   },
   { timestamps: true }

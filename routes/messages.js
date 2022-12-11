@@ -2,16 +2,32 @@ const router = require("express").Router();
 const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
 const isAuth = require("../middleware/auth");
-
+const Notification = require("../models/Notification");
 //add
-router.post("/", async (req, res) => {
-  const newMessage = new Message(req.body);
 
+
+
+
+
+router.post("/send/:senderId/:conservationId", async (req, res) => {
   try {
-    const savedMessage = await newMessage.save();
-    res.status(200).json(savedMessage);
-  } catch (err) {
-    res.status(500).json(err);
+
+
+    const newMessage = Message({
+      conversationId: req.params.conservationId,
+      sender: req.params.senderId,
+      text: req.body.text,
+    })
+    newMessage.save().then((message) => {
+      if (message) {
+        res.status(200).json({ message: message })
+      }
+      else {
+        res.status(500).json({ error: "something went wrong!" })
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ error: error })
   }
 });
 
@@ -60,5 +76,7 @@ router.get("/find/:parcelId/:firstUserId/:secondUserId", async (req, res) => {
 //     res.status(500).json(err);
 //   }
 // });
+
+
 
 module.exports = router;
