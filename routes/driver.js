@@ -339,7 +339,7 @@ router.get("/drivers/deliveries/underway/:id", function (req, res) {
   // let uniqueId =
   //   req.user == undefined ? req.app.locals.userId._id : req.user._id;
   //q1 start
-  Driver.findOne({ user: req.params.id }, (err, driver) => {
+  Driver.findOne({ _id: req.params.id }, (err, driver) => {
     if (err) {
       res.status(500).json({ error: err });
     } else {
@@ -490,7 +490,7 @@ router.post("/driver/request-delivery-completion/:driverId/:parcelId", function 
 router.get("/driver-reviews/:driverId", function (req, res) {
   Driver.findOne({ _id: req.params.driverId }, (err, driver) => {
     if (!err) {
-      res.status(200).json({ Reviews: driver.reviews })
+      res.status(200).json({ Reviews: driver.reviews, DriverData: driver })
     }
     else {
       res.status(500).json({ error: err })

@@ -6,8 +6,8 @@ const Conversation = require("../models/Conversation");
 const Notification = require("../models/Notification");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const isAuth = require("../middleware/auth");
-// const BaseUrl = "http://dropshpper-env.eba-vxawe2k2.us-east-1.elasticbeanstalk.com";
-const BaseUrl = "http://localhost:3000";
+const BaseUrl = "http://dropshpper-env.eba-vxawe2k2.us-east-1.elasticbeanstalk.com";
+// const BaseUrl = "http://localhost:3000";
 // Receving Payment using payment intent
 // router.get(`${BaseUrl}/hello`, async (req, res) => {
 //   res.send("send page having stipe form here");
